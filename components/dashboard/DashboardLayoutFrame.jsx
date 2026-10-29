@@ -38,6 +38,7 @@ import AuctioneerFinance from "@/components/dashboard/AuctioneerFinance";
 import Mybids from "./Mybids"
 import AdminAuctioneerManager from "@/components/dashboard/AdminAuctioneerManager";
 import AdminRefundManager from "@/components/dashboard/AdminRefundManager";
+import AuctionRefunds from "@/components/dashboard/AuctionRefunds";
 import AuctioneerPasswordChange from "@/components/dashboard/AuctioneerPasswordChange";
 import AdminUserManager from "@/components/dashboard/AdminUserManager";
 
@@ -52,6 +53,21 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [accessPaymentMessage, setAccessPaymentMessage] = useState("");
   const [adminNotice, setAdminNotice] = useState("");
+  const [paymentBannerDismissed, setPaymentBannerDismissed] = useState(false);
+  const paymentOutcome = searchParams.get("payment");
+  const paymentAccessStep = searchParams.get("access_step");
+  const paymentBanner = paymentBannerDismissed ? null : ({
+    success: {
+      tone: "emerald",
+      text: paymentAccessStep === "next"
+        ? "Payment confirmed and your receipt has been emailed. Open the auction again to pay the next step and enter the room."
+        : "Payment confirmed. Your receipt has been emailed to you.",
+    },
+    failed: { tone: "red", text: "The payment did not go through. No money was taken - please try again." },
+    pending: { tone: "amber", text: "Your payment is still being confirmed. It will update here shortly - check Receipts in a moment." },
+    error: { tone: "red", text: "We could not confirm your payment right now. Check Receipts shortly, or try again." },
+    unknown: { tone: "amber", text: "We could not find that payment reference." },
+  })[paymentOutcome] || null;
   const { theme, toggleTheme } = useTheme();
   const isAdmin = user?.role === "ADMIN";
   const isBidder = user?.role === "BIDDER";
@@ -143,7 +159,7 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
   const getTabLabel = (tab) => {
     const labels = {
       "dashboard": "Dashboard",
-      "live-auctions": isAuctioneer ? "Auctions" : "Live Auction Floor",
+      "live-auctions": isAuctioneer ? "Manage Auctions" : "Live Auction Floor",
       "daily-sales": "Daily Sales",
       "properties": "Properties",
       "my-bids": "My Bids",
@@ -152,7 +168,7 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
       "payments": isAuctioneer ? "Payments Received" : "Receipts",
       "reports": "Reports",
       "auctioneers": "Auctioneer Administration",
-      "refunds": "Refund Management",
+      "refunds": isAdmin ? "Refund Management" : "Refunds",
       "users": "User Management",
       "settings": "Settings"
     };
@@ -161,12 +177,12 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
 
   const navItems = [
     { id: "dashboard", icon: LayoutDashboard, label: "Dashboard", show: true },
-    { id: "live-auctions", icon: Tv, label: isAuctioneer ? "Auctions" : "Live Auction Floor", show: !isAdmin, badge: liveCount },
+    { id: "live-auctions", icon: Tv, label: isAuctioneer ? "Manage Auctions" : "Live Auction Floor", show: !isAdmin, badge: liveCount },
     { id: "daily-sales", icon: ShoppingBag, label: "Daily Sales", show: isBidder || isAuctioneer },
     { id: "properties", icon: Home, label: "Properties", show: isBidder || isAuctioneer },
     { id: "my-bids", icon: Gavel, label: "My Bids", show: isBidder },
     { id: "auctioneers", icon: User, label: "Auctioneers", show: isAdmin },
-    { id: "refunds", icon: CircleDollarSign, label: "Refunds", show: isAdmin },
+    { id: "refunds", icon: CircleDollarSign, label: "Refunds", show: isAdmin || isAuctioneer },
     { id: "users", icon: Users, label: "User Management", show: isAdmin },
     { id: "payments", icon: Wallet, label: isAuctioneer ? "Payments Received" : "Receipts", show: true },
     { id: "reports", icon: BarChart3, label: "Reports", show: isAuctioneer },
@@ -355,6 +371,12 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
         {/* DYNAMIC CONTENT ROUTER */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 bg-[var(--color-bg)]">
           <div className="mx-auto w-full max-w-7xl">
+            {paymentBanner && (
+              <p className={`mb-4 flex items-start justify-between gap-3 rounded-lg border px-4 py-3 text-sm ${paymentBanner.tone === "emerald" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" : paymentBanner.tone === "red" ? "border-red-500/30 bg-red-500/10 text-red-500" : "border-amber-500/30 bg-amber-500/10 text-amber-500"}`} role="status">
+                <span>{paymentBanner.text}</span>
+                <button type="button" onClick={() => setPaymentBannerDismissed(true)} className="text-xs font-bold underline">Dismiss</button>
+              </p>
+            )}
             {accessPaymentMessage && (
               <p className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-3 text-sm text-[var(--color-text)]" role="status">
                 {accessPaymentMessage}
@@ -466,6 +488,7 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
                           { label: "Manage daily sales", tab: "daily-sales", icon: ShoppingBag, color: "text-emerald-500", bg: "bg-emerald-500/10" },
                           { label: "Payments received", tab: "payments", icon: Wallet, color: "text-violet-500", bg: "bg-violet-500/10" },
                           { label: "Properties", tab: "properties", icon: Home, color: "text-amber-500", bg: "bg-amber-500/10" },
+                          { label: "Refunds", tab: "refunds", icon: CircleDollarSign, color: "text-rose-500", bg: "bg-rose-500/10" },
                         ].map((action) => (
                           <button key={action.tab} type="button" onClick={() => setActiveTab(action.tab)} className="group flex items-center gap-3 rounded-xl p-3 text-left transition hover:bg-[var(--color-input)]">
                             <span className={`rounded-lg p-2 ${action.bg} transition-transform group-hover:scale-110`}>
@@ -567,6 +590,7 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
             )}
 
             {activeTab === "refunds" && isAdmin && <AdminRefundManager />}
+            {activeTab === "refunds" && isAuctioneer && <AuctionRefunds role="AUCTIONEER" />}
 
             {activeTab === "users" && isAdmin && (
               <AdminUserManager />
@@ -643,7 +667,7 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
           )}
         </button>}
 
-        {isAdmin && <button onClick={() => setActiveTab("refunds")} className={`flex flex-col items-center justify-center flex-1 h-full py-2 ${activeTab === "refunds" ? "text-[var(--color-primary)]" : "text-[var(--color-muted)]"}`}>
+        {(isAdmin || isAuctioneer) && <button onClick={() => setActiveTab("refunds")} className={`flex flex-col items-center justify-center flex-1 h-full py-2 ${activeTab === "refunds" ? "text-[var(--color-primary)]" : "text-[var(--color-muted)]"}`}>
           <CircleDollarSign className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] tracking-tight">Refunds</span>
         </button>}

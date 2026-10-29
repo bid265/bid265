@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { KeyRound, Loader2 } from "lucide-react";
 
-export default function AuctioneerPasswordChange() {
+export default function AuctioneerPasswordChange({ onChanged = null }) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -35,6 +35,7 @@ export default function AuctioneerPasswordChange() {
       setNewPassword("");
       setConfirmPassword("");
       setNotice("Password changed successfully. Use your new password the next time you sign in.");
+      onChanged?.();
     } catch (changeError) {
       setError(changeError.message || "Could not change your password.");
     } finally {

@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { assets, auctionItems, auctionSettlements, bids, sales, users } from "@/lib/db/schema";
 import { and, count, desc, eq, inArray, sum } from "drizzle-orm";
 import DashboardLayoutFrame from "@/components/dashboard/DashboardLayoutFrame";
+import ForcePasswordChange from "@/components/dashboard/ForcePasswordChange";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -19,6 +20,10 @@ export default async function DashboardPage() {
     role: session.user.role || "BIDDER"
   };
   
+  if (session.user.mustChangePassword) {
+    return <ForcePasswordChange name={user.name} />;
+  }
+
   const isAuctioneer = user.role === "AUCTIONEER";
   let serializedAuctionItems = [];
   let dashboardStats = null;

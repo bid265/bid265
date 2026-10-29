@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { assets, auctionItems, auctionRefunds, users } from "@/lib/db/schema";
 import { sendEmail } from "@/lib/email";
+import { processAutoRefunds } from "@/lib/refunds";
 
 async function requireAdmin() {
   const session = await auth();
@@ -76,7 +77,7 @@ export async function PATCH(request) {
       .where(eq(auctionRefunds.id, refundId))
       .limit(1);
     if (!refund) return NextResponse.json({ error: "Refund record not found." }, { status: 404 });
-    if (refund.status !== "PENDING") {
+    if (refund.status === "PROCESSED") {
       return NextResponse.json({ error: "This refund has already been processed." }, { status: 409 });
     }
 
@@ -85,7 +86,7 @@ export async function PATCH(request) {
       gatewayReference,
       processedById: Number(access.session.user.id),
       processedAt: new Date(),
-    }).where(and(eq(auctionRefunds.id, refundId), eq(auctionRefunds.status, "PENDING")))
+    }).where(and(eq(auctionRefunds.id, refundId), inArray(auctionRefunds.status, ["PENDING", "FAILED"])))
       .returning({ id: auctionRefunds.id });
     if (!processed) return NextResponse.json({ error: "Refund status changed. Refresh and try again." }, { status: 409 });
 
@@ -110,5 +111,29 @@ export async function PATCH(request) {
   } catch (error) {
     console.error("[Admin auction refunds PATCH]", error);
     return NextResponse.json({ error: "Could not process auction refund." }, { status: 500 });
+  }
+}
+
+/** Retry the automatic refund run for one auction (pending or failed refunds only). */
+export async function POST(request) {
+  try {
+    const access = await requireAdmin();
+    if (access.response) return access.response;
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    }
+    const auctionId = Number(body?.auctionId);
+    if (!Number.isInteger(auctionId) || auctionId <= 0) {
+      return NextResponse.json({ error: "A valid auction ID is required." }, { status: 400 });
+    }
+    const result = await processAutoRefunds(auctionId, { processedById: Number(access.session.user.id) });
+    return NextResponse.json({ success: true, ...result });
+  } catch (error) {
+    console.error("[Admin auction refunds POST]", error);
+    return NextResponse.json({ error: "Could not process auction refunds." }, { status: 500 });
   }
 }

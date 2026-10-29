@@ -16,7 +16,7 @@ export default async function AddListingPage({ searchParams }) {
     role: session.user.role || "BIDDER",
   };
 
-  if (user.role !== "AUCTIONEER" && user.role !== "ADMIN") {
+  if (session.user.mustChangePassword || (user.role !== "AUCTIONEER" && user.role !== "ADMIN")) {
     redirect("/dashboard");
   }
 

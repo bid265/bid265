@@ -312,20 +312,27 @@ type LandingAuction = {
   endTime: string;
 };
 
-const landingCategoryFallbackImages: Record<string, string> = {
-  VEHICLE: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=640&h=360&fit=crop",
-  ELECTRONICS: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=640&h=360&fit=crop",
-  FURNITURE: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=640&h=360&fit=crop",
-  LAND: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=640&h=360&fit=crop",
-  COMMERCIAL_BUILDING: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=640&h=360&fit=crop",
-  RESIDENTIAL_BUILDING: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=640&h=360&fit=crop",
-};
+// Category artwork lives in /public/categories. Matching is keyword based so custom
+// categories (e.g. "CAR", "HOUSE", "LAPTOPS") still get a relevant picture.
+const categoryArtwork: Array<{ keywords: string[]; image: string }> = [
+  { keywords: ["MOTORBIKE", "MOTORCYCLE", "BIKE", "SCOOTER"], image: "/categories/motorbike.svg" },
+  { keywords: ["VEHICLE", "CAR", "TRUCK", "BUS", "VAN", "AUTO", "TOYOTA"], image: "/categories/vehicle.svg" },
+  { keywords: ["ELECTRONIC", "PHONE", "LAPTOP", "COMPUTER", "TECH", "TV", "APPLIANCE"], image: "/categories/electronics.svg" },
+  { keywords: ["FURNITURE", "SOFA", "CHAIR", "TABLE", "BED", "DESK"], image: "/categories/furniture.svg" },
+  { keywords: ["LAND", "PLOT", "FARM", "ACRE", "STAND"], image: "/categories/land.svg" },
+  { keywords: ["COMMERCIAL", "OFFICE", "SHOP", "WAREHOUSE", "INDUSTRIAL"], image: "/categories/commercial.svg" },
+  { keywords: ["RESIDENTIAL", "HOUSE", "HOME", "APARTMENT", "VILLA", "FLAT"], image: "/categories/residential.svg" },
+];
 
-function getCategoryFallbackImage(category: string, tab: LandingCategoryTab) {
-  return landingCategoryFallbackImages[category.toUpperCase()] || (tab === "properties"
-    ? "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=640&h=360&fit=crop"
-    : "https://images.unsplash.com/photo-1542838132-92c53300491e?w=640&h=360&fit=crop");
+function getCategoryImage(category: string, tab: LandingCategoryTab) {
+  const name = category.toUpperCase();
+  const match = categoryArtwork.find((entry) => entry.keywords.some((keyword) => name.includes(keyword)));
+  if (match) return match.image;
+  return tab === "properties" ? "/categories/property.svg" : "/categories/goods.svg";
 }
+
+const formatCategoryName = (name: string) =>
+  name.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 
 function useLandingCategories(tab: LandingCategoryTab) {
   const [categories, setCategories] = useState<LandingCategory[]>([]);
@@ -339,18 +346,16 @@ function useLandingCategories(tab: LandingCategoryTab) {
         const data: { error?: string; items?: Array<{ category?: string | null; imageUrl?: string | null }>; categories?: string[] } = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not load categories.");
         const counts = new Map();
-        const images = new Map<string, string>();
         for (const item of data.items || []) {
           const category = item.category || "Other";
           counts.set(category, (counts.get(category) || 0) + 1);
-          if (item.imageUrl && !images.has(category)) images.set(category, item.imageUrl);
         }
         if (current) {
           setError("");
           setCategories((data.categories || []).map((name) => ({
             name,
             count: counts.get(name) || 0,
-            imageUrl: images.get(name) || getCategoryFallbackImage(name, tab),
+            imageUrl: getCategoryImage(name, tab),
           })));
         }
       })
@@ -389,21 +394,23 @@ function CategoryBrowseGrid({
     <Link
       key={category.name}
       href={`/marketplace?tab=${tab}&category=${encodeURIComponent(category.name)}`}
-      className={`group overflow-hidden rounded-2xl border border-[#58718B]/40 bg-[#10243A]/80 transition-all hover:-translate-y-1 hover:border-[#60A5FA]/60 hover:bg-[#1E3A5F] ${inView ? "opacity-100" : "opacity-0"}`}
+      className={`group relative block aspect-[4/3] overflow-hidden rounded-2xl border border-[#58718B]/40 bg-[#10243A] transition-all duration-300 hover:-translate-y-1 hover:border-[#60A5FA]/60 hover:shadow-xl hover:shadow-[#60A5FA]/10 ${inView ? "opacity-100" : "opacity-0"}`}
       style={{ transitionDelay: `${index * 70}ms` }}
     >
+      {/* The image covers the whole thumbnail; text sits on a gradient over it. */}
       <img
         src={category.imageUrl}
-        alt={`${category.name} category`}
-        className="h-32 w-full object-cover transition-transform duration-300 group-hover:scale-105"
+        alt={`${formatCategoryName(category.name)} category`}
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         loading="lazy"
       />
-      <div className="flex items-center justify-between gap-3 p-4">
+      <div className="absolute inset-0 bg-gradient-to-t from-[#081526]/95 via-[#081526]/35 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4">
         <div>
-          <span className="text-base font-bold text-white group-hover:text-[#60A5FA]">{category.name}</span>
-          <span className="mt-1 block text-sm text-[#D0DDDF]">{category.count} listings</span>
+          <span className="block text-base font-bold text-white drop-shadow group-hover:text-[#BFDBFE]">{formatCategoryName(category.name)}</span>
+          <span className="mt-0.5 block text-xs font-medium text-[#D0DDDF]">{category.count} {category.count === 1 ? "listing" : "listings"}</span>
         </div>
-        <ArrowRightIcon />
+        <span className="rounded-full bg-white/15 p-2 text-white backdrop-blur transition-colors group-hover:bg-[#60A5FA] group-hover:text-[#081526]"><ArrowRightIcon /></span>
       </div>
     </Link>
   ));

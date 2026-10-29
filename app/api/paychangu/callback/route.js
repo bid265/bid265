@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { finalizePayment, resolvePaymentRedirect } from "@/lib/paymentFinalize";
 import { db } from "@/lib/db";
 import { auctionAccessPayments, payments } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
@@ -8,15 +10,28 @@ import { syncListingSalePayment } from "@/lib/paymentSales";
 
 const WEBHOOK_SECRET = process.env.PAYCHANGU_SECRET_KEY; // Same as API key
 
-export async function GET() {
-  return NextResponse.json(
-    {
-      error: "This is a PayChangu webhook endpoint, not a web page.",
-      message: "PayChangu must send a signed POST request to this URL.",
-      method: "POST",
-    },
-    { status: 405, headers: { Allow: "POST" } },
-  );
+/**
+ * Browser return URL. PayChangu sends the buyer here after the (simulated or live) checkout.
+ * We confirm the payment, then redirect to the page that matches what was paid for.
+ */
+export async function GET(request) {
+  const url = new URL(request.url);
+  const base = process.env.NEXT_PUBLIC_APP_URL || process.env.AUTH_URL || url.origin;
+  const reference = url.searchParams.get("tx_ref") || url.searchParams.get("reference") || url.searchParams.get("trx_ref");
+  const hint = url.searchParams.get("status");
+  const redirectTo = (path) => NextResponse.redirect(new URL(path, base));
+
+  if (!reference) return redirectTo("/dashboard?payment=unknown");
+
+  try {
+    const session = await auth();
+    const outcome = await finalizePayment(reference, { hint, viewerId: session?.user?.id ? Number(session.user.id) : null });
+    if (!outcome.found) return redirectTo("/dashboard?payment=unknown");
+    return redirectTo(await resolvePaymentRedirect(reference, outcome));
+  } catch (error) {
+    console.error("[PayChangu return]", error);
+    return redirectTo(`/dashboard?payment=error&payment_ref=${encodeURIComponent(reference)}`);
+  }
 }
 
 async function attemptReceiptEmail(reference) {

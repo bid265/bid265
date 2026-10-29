@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { createAssetAndAuction } from "@/app/actions/createAssetAndAuction";
 import { createDailySaleListing } from "@/app/actions/createDailySale";
+import PlotAreaCapture from "@/components/dashboard/PlotAreaCapture";
 
 /**
  * 📝 ADD LISTING FORM
@@ -31,6 +32,7 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
   );
   const [customCategory, setCustomCategory] = useState("");
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [plotMeasurement, setPlotMeasurement] = useState(null);
 
   const [dynamicAttributes, setDynamicAttributes] = useState([
     { key: "Condition", value: "Excellent" },
@@ -68,7 +70,16 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
       formData.append("description", form.description);
       formData.append("clientName", form.clientName);
       formData.append("category", finalCategory);
-      formData.append("dynamicAttributes", JSON.stringify(dynamicAttributes));
+      // GPS-captured plot dimensions are stored with the listing's specifications.
+      const attributesToSave = [...dynamicAttributes];
+      if (plotMeasurement && finalCategory === "LAND") {
+        attributesToSave.push(
+          { key: "Plot Area (GPS)", value: plotMeasurement.areaLabel },
+          { key: "Plot Perimeter (GPS)", value: plotMeasurement.perimeterLabel },
+          { key: "GPS Boundary Points", value: plotMeasurement.boundary },
+        );
+      }
+      formData.append("dynamicAttributes", JSON.stringify(attributesToSave));
 
       if (uploadedFile) {
         formData.append("assetImageFile", uploadedFile);
@@ -153,6 +164,11 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
           <label className="block text-[10px] font-bold text-[var(--color-muted)] uppercase mb-1">Comprehensive Description</label>
           <textarea required placeholder={mode === "daily-sale" ? "Describe the item condition, specs, and what is included..." : "Outline legal descriptors, physical attributes, title deed statuses..."} value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} className="w-full bg-[var(--color-input)] border border-[var(--color-border)] px-3 py-2.5 text-xs rounded-xl h-24 resize-none focus:outline-none focus:border-[var(--color-primary)]/40 focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all" />
         </div>
+
+        {/* GPS plot measurement - land listings only */}
+        {mode === "property" && selectedCategory === "LAND" && (
+          <PlotAreaCapture onChange={setPlotMeasurement} />
+        )}
 
         {/* Dynamic Specifications */}
         <div className="bg-[var(--color-input)]/30 p-4 rounded-xl border border-[var(--color-border)] space-y-3">

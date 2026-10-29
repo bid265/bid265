@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
+import { getAppUrl, renderEmail, sendEmail } from "@/lib/email";
+import { generateTemporaryPassword } from "@/lib/passwords";
 
 async function requireAdmin() {
   const session = await auth();
@@ -64,7 +66,6 @@ export async function POST(request) {
     const district = typeof body.district === "string" ? body.district.trim() : "";
     const businessName = typeof body.businessName === "string" ? body.businessName.trim() : "";
     const nationalId = typeof body.nationalId === "string" ? body.nationalId.trim() : "";
-    const password = typeof body.password === "string" ? body.password : "";
 
     if (
       !name ||
@@ -73,11 +74,10 @@ export async function POST(request) {
       phoneNumber.length > 20 ||
       !postalAddress ||
       !addressLine1 ||
-      !addressLine2 ||
-      password.length < 12
+      !addressLine2
     ) {
       return NextResponse.json({
-        error: "Name, valid email, phone (maximum 20 characters), postal address, address lines 1 and 2, and a password of at least 12 characters are required.",
+        error: "Name, valid email, phone (maximum 20 characters), postal address, address lines 1 and 2 are required.",
       }, { status: 400 });
     }
 
@@ -87,10 +87,13 @@ export async function POST(request) {
       return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
     }
 
+    // A random one-time password is emailed to the auctioneer, who must replace it on first sign-in.
+    const temporaryPassword = generateTemporaryPassword();
     const [auctioneer] = await db.insert(users).values({
       name,
       email,
-      password: await bcrypt.hash(password, 12),
+      password: await bcrypt.hash(temporaryPassword, 12),
+      mustChangePassword: true,
       phoneNumber,
       postalAddress,
       addressLine1,
@@ -107,7 +110,25 @@ export async function POST(request) {
       phoneNumber: users.phoneNumber,
     });
 
-    return NextResponse.json({ auctioneer }, { status: 201 });
+    try {
+      const { html, text } = renderEmail({
+        heading: "Your TrustBid auctioneer account is ready",
+        intro: `Hello ${name},\n\nAn administrator has registered you as an auctioneer. Sign in with the temporary password below. You will be asked to choose your own password before you can open your dashboard.`,
+        rows: [["Email", email], ["Temporary password", temporaryPassword]],
+        cta: { label: "Sign in to TrustBid", url: `${getAppUrl()}/login` },
+        footer: "For your security, do not share this password. It stops working as soon as you set your own.",
+      });
+      await sendEmail({ to: email, subject: "Your TrustBid auctioneer account", text, html });
+    } catch (emailError) {
+      // Never leave an account whose password nobody knows: undo the registration.
+      console.error("[Admin auctioneers POST] credentials email failed", emailError);
+      await db.delete(users).where(eq(users.id, auctioneer.id));
+      return NextResponse.json({
+        error: "The auctioneer was not registered because the login email could not be sent. Check the email (SMTP) settings and try again.",
+      }, { status: 502 });
+    }
+
+    return NextResponse.json({ auctioneer, credentialsEmailed: true }, { status: 201 });
   } catch (error) {
     console.error("[Admin auctioneers POST]", error);
     return NextResponse.json({ error: "Could not create the auctioneer account." }, { status: 500 });

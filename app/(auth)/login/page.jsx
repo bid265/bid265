@@ -112,9 +112,9 @@ export default function LoginPage() {
               <label className="text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)]">
                 Password
               </label>
-              <a href="#" className="text-xs font-semibold text-[var(--color-primary)] hover:underline">
-                Forgot?
-              </a>
+              <Link href="/forgot-password" className="text-xs font-semibold text-[var(--color-primary)] hover:underline">
+                Forgot password?
+              </Link>
             </div>
             <div className="relative">
               <Lock className="w-4 h-4 text-[var(--color-muted)] absolute left-3 top-3" />

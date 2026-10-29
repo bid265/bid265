@@ -4,6 +4,8 @@ import { auth } from "../../auth";
 import { db } from "@/lib/db";
 import { assets, auctionItems } from "@/lib/db/schema";
 import { storeAssetImage, validateImageFile } from "@/lib/imageStorage";
+import { notifyAuctionListed } from "@/lib/auctionNotifications";
+import { after } from "next/server";
 
 export async function createAssetAndAuction(formData) {
   try {
@@ -121,6 +123,12 @@ export async function createAssetAndAuction(formData) {
 
       return { asset: newAsset, auctionItem: newAuctionItem };
     });
+
+    // Announce new auctions by email (description, start/end date and time, fees) after the response.
+    if (listingType === "AUCTION" && result.auctionItem) {
+      const auctionItemId = result.auctionItem.id;
+      after(() => notifyAuctionListed(auctionItemId).catch((error) => console.error("[Auction listed notification]", error)));
+    }
 
     // 🎯 FIX: Sanitize the network payloads completely here before crossing the server boundary
     const serializedData = {

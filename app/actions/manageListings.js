@@ -15,6 +15,8 @@ import {
 } from "@/lib/db/schema";
 import { storeAssetImage, validateImageFile } from "@/lib/imageStorage";
 import { and, eq, inArray, sql } from "drizzle-orm";
+import { after } from "next/server";
+import { notifyAuctionListed } from "@/lib/auctionNotifications";
 
 async function getManager() {
   const session = await auth();
@@ -302,6 +304,7 @@ export async function reuseAuction(auctionItemId, schedule) {
     });
 
     if (result.error) return { success: false, error: result.error };
+    after(() => notifyAuctionListed(result.auctionItemId).catch((error) => console.error("[Auction listed notification]", error)));
     return { success: true, data: result };
   } catch (error) {
     console.error("[Reuse auction]", error);

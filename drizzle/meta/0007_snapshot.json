@@ -1,0 +1,1547 @@
+{
+  "id": "d1412570-d02f-479f-8da8-11a2f5e70b66",
+  "prevId": "3879eb1b-40a9-4a4c-9f1b-6e42d6342e12",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.asset_image_data": {
+      "name": "asset_image_data",
+      "schema": "",
+      "columns": {
+        "assetImageId": {
+          "name": "assetImageId",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "contentType": {
+          "name": "contentType",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "bytea",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "asset_image_data_assetImageId_asset_images_id_fk": {
+          "name": "asset_image_data_assetImageId_asset_images_id_fk",
+          "tableFrom": "asset_image_data",
+          "tableTo": "asset_images",
+          "columnsFrom": [
+            "assetImageId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.asset_images": {
+      "name": "asset_images",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "isPrimary": {
+          "name": "isPrimary",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "auctionItemId": {
+          "name": "auctionItemId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "asset_images_auctionItemId_auction_items_id_fk": {
+          "name": "asset_images_auctionItemId_auction_items_id_fk",
+          "tableFrom": "asset_images",
+          "tableTo": "auction_items",
+          "columnsFrom": [
+            "auctionItemId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.assets": {
+      "name": "assets",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location": {
+          "name": "location",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "clientName": {
+          "name": "clientName",
+          "type": "varchar(191)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category": {
+          "name": "category",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'OTHER'"
+        },
+        "salesType": {
+          "name": "salesType",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PROPERTY'"
+        },
+        "listingType": {
+          "name": "listingType",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'AUCTION'"
+        },
+        "salePrice": {
+          "name": "salePrice",
+          "type": "numeric(14, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "monthlyRent": {
+          "name": "monthlyRent",
+          "type": "numeric(14, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rentDueDay": {
+          "name": "rentDueDay",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lastRentReminderMonth": {
+          "name": "lastRentReminderMonth",
+          "type": "varchar(7)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "isSold": {
+          "name": "isSold",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "isListed": {
+          "name": "isListed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "attributes": {
+          "name": "attributes",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "documentUrl": {
+          "name": "documentUrl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdById": {
+          "name": "createdById",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "assets_createdById_users_id_fk": {
+          "name": "assets_createdById_users_id_fk",
+          "tableFrom": "assets",
+          "tableTo": "users",
+          "columnsFrom": [
+            "createdById"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.auction_access_payments": {
+      "name": "auction_access_payments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "auctionItemId": {
+          "name": "auctionItemId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "feeType": {
+          "name": "feeType",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(14, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "paymentRef": {
+          "name": "paymentRef",
+          "type": "varchar(191)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "paidAt": {
+          "name": "paidAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "auction_access_payments_userId_auctionItemId_feeType_key": {
+          "name": "auction_access_payments_userId_auctionItemId_feeType_key",
+          "columns": [
+            {
+              "expression": "userId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "auctionItemId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "feeType",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "auction_access_payments_userId_status_idx": {
+          "name": "auction_access_payments_userId_status_idx",
+          "columns": [
+            {
+              "expression": "userId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "auction_access_payments_userId_users_id_fk": {
+          "name": "auction_access_payments_userId_users_id_fk",
+          "tableFrom": "auction_access_payments",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "auction_access_payments_auctionItemId_auction_items_id_fk": {
+          "name": "auction_access_payments_auctionItemId_auction_items_id_fk",
+          "tableFrom": "auction_access_payments",
+          "tableTo": "auction_items",
+          "columnsFrom": [
+            "auctionItemId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.auction_items": {
+      "name": "auction_items",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "assetId": {
+          "name": "assetId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reservePrice": {
+          "name": "reservePrice",
+          "type": "numeric(14, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "startingBid": {
+          "name": "startingBid",
+          "type": "numeric(14, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "depositAmount": {
+          "name": "depositAmount",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "biddingFee": {
+          "name": "biddingFee",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "startTime": {
+          "name": "startTime",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "endTime": {
+          "name": "endTime",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'UPCOMING'"
+        },
+        "liveRoomId": {
+          "name": "liveRoomId",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reservePriceDisclosed": {
+          "name": "reservePriceDisclosed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "listingNotifiedAt": {
+          "name": "listingNotifiedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "auction_items_status_idx": {
+          "name": "auction_items_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "auction_items_assetId_assets_id_fk": {
+          "name": "auction_items_assetId_assets_id_fk",
+          "tableFrom": "auction_items",
+          "tableTo": "assets",
+          "columnsFrom": [
+            "assetId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "auction_items_liveRoomId_unique": {
+          "name": "auction_items_liveRoomId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "liveRoomId"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.auction_refunds": {
+      "name": "auction_refunds",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "auctionItemId": {
+          "name": "auctionItemId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "accessPaymentId": {
+          "name": "accessPaymentId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(14, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason": {
+          "name": "reason",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "gatewayReference": {
+          "name": "gatewayReference",
+          "type": "varchar(191)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "processedById": {
+          "name": "processedById",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "processedAt": {
+          "name": "processedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "emailSentAt": {
+          "name": "emailSentAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "processedEmailSentAt": {
+          "name": "processedEmailSentAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "auction_refunds_status_idx": {
+          "name": "auction_refunds_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "auction_refunds_userId_idx": {
+          "name": "auction_refunds_userId_idx",
+          "columns": [
+            {
+              "expression": "userId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "auction_refunds_auctionItemId_auction_items_id_fk": {
+          "name": "auction_refunds_auctionItemId_auction_items_id_fk",
+          "tableFrom": "auction_refunds",
+          "tableTo": "auction_items",
+          "columnsFrom": [
+            "auctionItemId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "auction_refunds_accessPaymentId_auction_access_payments_id_fk": {
+          "name": "auction_refunds_accessPaymentId_auction_access_payments_id_fk",
+          "tableFrom": "auction_refunds",
+          "tableTo": "auction_access_payments",
+          "columnsFrom": [
+            "accessPaymentId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "auction_refunds_userId_users_id_fk": {
+          "name": "auction_refunds_userId_users_id_fk",
+          "tableFrom": "auction_refunds",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "auction_refunds_processedById_users_id_fk": {
+          "name": "auction_refunds_processedById_users_id_fk",
+          "tableFrom": "auction_refunds",
+          "tableTo": "users",
+          "columnsFrom": [
+            "processedById"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "auction_refunds_accessPaymentId_unique": {
+          "name": "auction_refunds_accessPaymentId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "accessPaymentId"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.auction_registrations": {
+      "name": "auction_registrations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "auctionItemId": {
+          "name": "auctionItemId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "auction_registrations_userId_users_id_fk": {
+          "name": "auction_registrations_userId_users_id_fk",
+          "tableFrom": "auction_registrations",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "auction_registrations_auctionItemId_auction_items_id_fk": {
+          "name": "auction_registrations_auctionItemId_auction_items_id_fk",
+          "tableFrom": "auction_registrations",
+          "tableTo": "auction_items",
+          "columnsFrom": [
+            "auctionItemId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "auction_registrations_userId_auctionItemId_key": {
+          "name": "auction_registrations_userId_auctionItemId_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "userId",
+            "auctionItemId"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.auction_settlements": {
+      "name": "auction_settlements",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "auctionItemId": {
+          "name": "auctionItemId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "winnerId": {
+          "name": "winnerId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "winningBidAmount": {
+          "name": "winningBidAmount",
+          "type": "numeric(14, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "winnerEmailSentAt": {
+          "name": "winnerEmailSentAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "auction_settlements_auctionItemId_auction_items_id_fk": {
+          "name": "auction_settlements_auctionItemId_auction_items_id_fk",
+          "tableFrom": "auction_settlements",
+          "tableTo": "auction_items",
+          "columnsFrom": [
+            "auctionItemId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "auction_settlements_winnerId_users_id_fk": {
+          "name": "auction_settlements_winnerId_users_id_fk",
+          "tableFrom": "auction_settlements",
+          "tableTo": "users",
+          "columnsFrom": [
+            "winnerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "auction_settlements_auctionItemId_unique": {
+          "name": "auction_settlements_auctionItemId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "auctionItemId"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.bids": {
+      "name": "bids",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(14, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "isWinningBid": {
+          "name": "isWinningBid",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "bidderId": {
+          "name": "bidderId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "auctionItemId": {
+          "name": "auctionItemId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "bids_auctionItemId_amount_idx": {
+          "name": "bids_auctionItemId_amount_idx",
+          "columns": [
+            {
+              "expression": "auctionItemId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "amount",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "bids_bidderId_users_id_fk": {
+          "name": "bids_bidderId_users_id_fk",
+          "tableFrom": "bids",
+          "tableTo": "users",
+          "columnsFrom": [
+            "bidderId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "bids_auctionItemId_auction_items_id_fk": {
+          "name": "bids_auctionItemId_auction_items_id_fk",
+          "tableFrom": "bids",
+          "tableTo": "auction_items",
+          "columnsFrom": [
+            "auctionItemId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.daily_sales": {
+      "name": "daily_sales",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "assetId": {
+          "name": "assetId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price": {
+          "name": "price",
+          "type": "numeric(14, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "stockCount": {
+          "name": "stockCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "isAvailable": {
+          "name": "isAvailable",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "daily_sales_assetId_assets_id_fk": {
+          "name": "daily_sales_assetId_assets_id_fk",
+          "tableFrom": "daily_sales",
+          "tableTo": "assets",
+          "columnsFrom": [
+            "assetId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.payments": {
+      "name": "payments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(14, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reference": {
+          "name": "reference",
+          "type": "varchar(191)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gatewayStatus": {
+          "name": "gatewayStatus",
+          "type": "varchar(191)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "purpose": {
+          "name": "purpose",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "receiptEmailSentAt": {
+          "name": "receiptEmailSentAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "payments_userId_users_id_fk": {
+          "name": "payments_userId_users_id_fk",
+          "tableFrom": "payments",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "payments_reference_unique": {
+          "name": "payments_reference_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "reference"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.sales": {
+      "name": "sales",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "assetId": {
+          "name": "assetId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dailySaleId": {
+          "name": "dailySaleId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "buyerId": {
+          "name": "buyerId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sellerId": {
+          "name": "sellerId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(14, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "paymentRef": {
+          "name": "paymentRef",
+          "type": "varchar(191)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "paidAt": {
+          "name": "paidAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "sales_one_pending_property_per_asset_idx": {
+          "name": "sales_one_pending_property_per_asset_idx",
+          "columns": [
+            {
+              "expression": "assetId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"sales\".\"kind\" = 'PROPERTY_PURCHASE' AND \"sales\".\"status\" = 'PENDING'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "sales_assetId_assets_id_fk": {
+          "name": "sales_assetId_assets_id_fk",
+          "tableFrom": "sales",
+          "tableTo": "assets",
+          "columnsFrom": [
+            "assetId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "sales_dailySaleId_daily_sales_id_fk": {
+          "name": "sales_dailySaleId_daily_sales_id_fk",
+          "tableFrom": "sales",
+          "tableTo": "daily_sales",
+          "columnsFrom": [
+            "dailySaleId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "sales_buyerId_users_id_fk": {
+          "name": "sales_buyerId_users_id_fk",
+          "tableFrom": "sales",
+          "tableTo": "users",
+          "columnsFrom": [
+            "buyerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "sales_sellerId_users_id_fk": {
+          "name": "sales_sellerId_users_id_fk",
+          "tableFrom": "sales",
+          "tableTo": "users",
+          "columnsFrom": [
+            "sellerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "sales_paymentRef_unique": {
+          "name": "sales_paymentRef_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "paymentRef"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(191)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(191)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phoneNumber": {
+          "name": "phoneNumber",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "postalAddress": {
+          "name": "postalAddress",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "addressLine1": {
+          "name": "addressLine1",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "addressLine2": {
+          "name": "addressLine2",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "district": {
+          "name": "district",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "businessName": {
+          "name": "businessName",
+          "type": "varchar(191)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nationalId": {
+          "name": "nationalId",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "Role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'BIDDER'"
+        },
+        "isVerified": {
+          "name": "isVerified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "mustChangePassword": {
+          "name": "mustChangePassword",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.password_reset_tokens": {
+      "name": "password_reset_tokens",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tokenHash": {
+          "name": "tokenHash",
+          "type": "varchar(128)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usedAt": {
+          "name": "usedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "password_reset_tokens_userId_idx": {
+          "name": "password_reset_tokens_userId_idx",
+          "columns": [
+            {
+              "expression": "userId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "password_reset_tokens_userId_users_id_fk": {
+          "name": "password_reset_tokens_userId_users_id_fk",
+          "tableFrom": "password_reset_tokens",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "password_reset_tokens_tokenHash_unique": {
+          "name": "password_reset_tokens_tokenHash_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "tokenHash"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.Role": {
+      "name": "Role",
+      "schema": "public",
+      "values": [
+        "BIDDER",
+        "AUCTIONEER",
+        "ADMIN"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

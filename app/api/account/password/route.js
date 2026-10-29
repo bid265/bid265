@@ -55,7 +55,7 @@ export async function PATCH(request) {
 
     const newPasswordHash = await bcrypt.hash(newPassword, 12);
     const [updated] = await db.update(users)
-      .set({ password: newPasswordHash })
+      .set({ password: newPasswordHash, mustChangePassword: false })
       .where(and(
         eq(users.id, user.id),
         eq(users.role, "AUCTIONEER"),

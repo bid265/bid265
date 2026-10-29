@@ -13,7 +13,6 @@ const emptyForm = {
   district: "",
   businessName: "",
   nationalId: "",
-  password: "",
 };
 
 const fields = [
@@ -26,7 +25,6 @@ const fields = [
   ["district", "District / city", false],
   ["businessName", "Business / agency", false],
   ["nationalId", "Certificate number", false],
-  ["password", "Initial password (12+ characters)", true],
 ];
 
 async function fetchAuctioneerData() {
@@ -88,7 +86,7 @@ export default function AdminAuctioneerManager({ onRegistrationComplete }) {
       if (!response.ok) throw new Error(data.error || "Could not create the account.");
       setForm(emptyForm);
       await loadAuctioneers();
-      onRegistrationComplete?.(`Auctioneer account created for ${data.auctioneer.email}.`);
+      onRegistrationComplete?.(`Auctioneer account created. A temporary password was emailed to ${data.auctioneer.email}.`);
     } catch (saveError) {
       setError(saveError.message || "Could not create the account.");
     } finally {
@@ -130,17 +128,18 @@ export default function AdminAuctioneerManager({ onRegistrationComplete }) {
               <span>{label}{required ? " *" : ""}</span>
               <input
                 name={name}
-                type={name === "email" ? "email" : name === "password" ? "password" : "text"}
+                type={name === "email" ? "email" : "text"}
                 value={form[name]}
                 onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))}
                 required={required}
-                minLength={name === "password" ? 12 : undefined}
                 maxLength={name === "phoneNumber" ? 20 : undefined}
-                autoComplete={name === "password" ? "new-password" : undefined}
                 className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-input)] px-3 py-2.5 text-sm text-[var(--color-text)] outline-none focus:border-[var(--color-primary)]"
               />
             </label>
           ))}
+          <p className="sm:col-span-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-input)] p-3 text-xs text-[var(--color-muted)]">
+            A random password is generated and emailed to the auctioneer. They will be asked to set their own password the first time they sign in.
+          </p>
           <div className="sm:col-span-2">
             <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}

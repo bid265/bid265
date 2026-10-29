@@ -17,8 +17,13 @@ export async function POST(request) {
     const {
       amount, currency = "MWK", tx_ref, email,
       first_name, last_name, phone, method, purpose,
-      callback_url, return_url,
     } = body;
+
+    // The webhook and browser-return URLs are always built server-side (never taken from the
+    // client) so every payment, simulated or live, comes back through /api/paychangu/callback.
+    const appBase = (process.env.NEXT_PUBLIC_APP_URL || process.env.AUTH_URL || new URL(request.url).origin).replace(/\/+$/, "");
+    const callback_url = `${appBase}/api/paychangu/callback`;
+    const return_url = `${appBase}/api/paychangu/callback?tx_ref=${encodeURIComponent(String(tx_ref || ""))}`;
 
     const requestedAmount = Number(amount);
     if (!Number.isFinite(requestedAmount) || requestedAmount <= 0 || !tx_ref || !email || !purpose) {
