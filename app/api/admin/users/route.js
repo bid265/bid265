@@ -1,8 +1,20 @@
 import { NextResponse } from "next/server";
-import { and, asc, count, eq, ilike, ne, or, sql } from "drizzle-orm";
+import { and, asc, count, eq, ilike, inArray, ne, or, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import {
+  assets,
+  auctionAccessPayments,
+  auctionItems,
+  auctionRefunds,
+  auctionRegistrations,
+  auctionSettlements,
+  bids,
+  dailySales,
+  payments,
+  sales,
+  users,
+} from "@/lib/db/schema";
 
 const userRoles = ["BIDDER", "AUCTIONEER", "ADMIN"];
 
@@ -187,5 +199,114 @@ export async function PATCH(request) {
     }
     console.error("[Admin users PATCH]", error);
     return NextResponse.json({ error: "Could not update user account." }, { status: 500 });
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const access = await requireAdmin();
+    if (access.response) return access.response;
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    }
+
+    const userId = Number(body?.userId);
+    if (!Number.isSafeInteger(userId) || userId <= 0) {
+      return NextResponse.json({ error: "A valid user ID is required." }, { status: 400 });
+    }
+
+    if (userId === Number(access.session.user.id)) {
+      return NextResponse.json({ error: "You cannot delete your own administrator account." }, { status: 400 });
+    }
+
+    const result = await db.transaction(async (tx) => {
+      const admins = await tx.select({ id: users.id }).from(users)
+        .where(eq(users.role, "ADMIN"))
+        .for("update");
+      const [user] = await tx.select({
+        id: users.id,
+        name: users.name,
+        role: users.role,
+      }).from(users).where(eq(users.id, userId)).limit(1);
+
+      if (!user) return { notFound: true };
+      if (user.role === "ADMIN" && admins.length <= 1) return { lastAdmin: true };
+
+      const ownedAssets = await tx.select({ id: assets.id }).from(assets)
+        .where(eq(assets.createdById, userId));
+      const assetIds = ownedAssets.map((asset) => asset.id);
+      const ownedDailySales = assetIds.length
+        ? await tx.select({ id: dailySales.id }).from(dailySales)
+          .where(inArray(dailySales.assetId, assetIds))
+        : [];
+      const dailySaleIds = ownedDailySales.map((sale) => sale.id);
+      const ownedAuctions = assetIds.length
+        ? await tx.select({ id: auctionItems.id }).from(auctionItems)
+          .where(inArray(auctionItems.assetId, assetIds))
+        : [];
+      const auctionIds = ownedAuctions.map((auction) => auction.id);
+
+      const saleFilters = [eq(sales.buyerId, userId), eq(sales.sellerId, userId)];
+      if (assetIds.length) saleFilters.push(inArray(sales.assetId, assetIds));
+      if (dailySaleIds.length) saleFilters.push(inArray(sales.dailySaleId, dailySaleIds));
+      const linkedSales = await tx.select({ paymentRef: sales.paymentRef }).from(sales)
+        .where(or(...saleFilters));
+
+      const accessPaymentFilters = [eq(auctionAccessPayments.userId, userId)];
+      if (auctionIds.length) accessPaymentFilters.push(inArray(auctionAccessPayments.auctionItemId, auctionIds));
+      const linkedAccessPayments = await tx.select({ paymentRef: auctionAccessPayments.paymentRef })
+        .from(auctionAccessPayments)
+        .where(or(...accessPaymentFilters));
+
+      await tx.update(auctionRefunds).set({ processedById: null })
+        .where(eq(auctionRefunds.processedById, userId));
+      await tx.update(auctionSettlements).set({ winnerId: null })
+        .where(eq(auctionSettlements.winnerId, userId));
+
+      const registrationFilters = [eq(auctionRegistrations.userId, userId)];
+      if (auctionIds.length) registrationFilters.push(inArray(auctionRegistrations.auctionItemId, auctionIds));
+      await tx.delete(auctionRegistrations).where(or(...registrationFilters));
+
+      const bidFilters = [eq(bids.bidderId, userId)];
+      if (auctionIds.length) bidFilters.push(inArray(bids.auctionItemId, auctionIds));
+      await tx.delete(bids).where(or(...bidFilters));
+
+      await tx.delete(auctionRefunds).where(eq(auctionRefunds.userId, userId));
+      await tx.delete(sales).where(or(...saleFilters));
+      await tx.delete(auctionAccessPayments).where(or(...accessPaymentFilters));
+
+      const linkedPaymentReferences = [
+        ...linkedSales.map((sale) => sale.paymentRef),
+        ...linkedAccessPayments.map((payment) => payment.paymentRef),
+      ].filter(Boolean);
+      const paymentFilters = [eq(payments.userId, userId)];
+      if (linkedPaymentReferences.length) {
+        paymentFilters.push(inArray(payments.reference, linkedPaymentReferences));
+      }
+      await tx.delete(payments).where(or(...paymentFilters));
+
+      if (assetIds.length) {
+        await tx.delete(assets).where(inArray(assets.id, assetIds));
+      }
+      await tx.delete(users).where(eq(users.id, userId));
+
+      return { user };
+    });
+
+    if (result.notFound) {
+      return NextResponse.json({ error: "User account not found." }, { status: 404 });
+    }
+    if (result.lastAdmin) {
+      return NextResponse.json({ error: "The last administrator account cannot be deleted." }, { status: 409 });
+    }
+
+    return NextResponse.json({ success: true, user: result.user });
+  } catch (error) {
+    console.error("[Admin users DELETE]", error);
+    return NextResponse.json({ error: "Could not delete user account and related records." }, { status: 500 });
   }
 }

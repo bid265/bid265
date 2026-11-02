@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Check, ChevronLeft, ChevronRight, Loader2, Pencil, RefreshCw, Search, Users, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Loader2, Pencil, RefreshCw, Search, Trash2, Users, X } from "lucide-react";
 
 const roleOptions = ["BIDDER", "AUCTIONEER", "ADMIN"];
 
@@ -49,17 +49,22 @@ export default function AdminUserManager() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const editFormRef = useRef(null);
+  const editHeadingRef = useRef(null);
 
   const refresh = useCallback(async () => {
     try {
       const result = await fetchUsers({ query, role: roleFilter, page });
       setData(result);
       setError("");
+      return result;
     } catch (loadError) {
       setError(loadError.message || "Could not load user accounts.");
+      return null;
     } finally {
       setLoading(false);
     }
@@ -88,6 +93,12 @@ export default function AdminUserManager() {
     };
   }, [query, roleFilter, page]);
 
+  useEffect(() => {
+    if (!editingUser) return;
+    editFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    editHeadingRef.current?.focus({ preventScroll: true });
+  }, [editingUser]);
+
   const handleSave = async (event) => {
     event.preventDefault();
     if (!editingUser) return;
@@ -113,6 +124,35 @@ export default function AdminUserManager() {
     }
   };
 
+  const handleDelete = async (user) => {
+    const confirmed = window.confirm(
+      `Permanently delete ${user.name}'s account and all related data, including listings, bids, sales, payments, and auction records? This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeletingUserId(user.id);
+    setError("");
+    setNotice("");
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not delete account.");
+
+      if (editingUser?.id === user.id) setEditingUser(null);
+      setNotice(`Deleted ${result.user.name}'s account and related data.`);
+      const refreshed = await refresh();
+      if (refreshed && page > refreshed.totalPages) setPage(refreshed.totalPages);
+    } catch (deleteError) {
+      setError(deleteError.message || "Could not delete account.");
+    } finally {
+      setDeletingUserId(null);
+    }
+  };
+
   const currentUserId = Number(session?.user?.id);
   const updateField = (name, value) => setEditingUser((current) => current
     ? { ...current, [name]: value }
@@ -134,10 +174,10 @@ export default function AdminUserManager() {
       {notice && <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-400" role="status">{notice}</p>}
 
       {editingUser && (
-        <form onSubmit={handleSave} className="space-y-4 rounded-2xl border border-[var(--color-primary)]/30 bg-[var(--color-card)] p-5">
+        <form ref={editFormRef} onSubmit={handleSave} className="space-y-4 rounded-2xl border border-[var(--color-primary)]/30 bg-[var(--color-card)] p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-[var(--color-text)]">Edit {editingUser.name}</h3>
+              <h3 ref={editHeadingRef} tabIndex={-1} className="text-sm font-bold text-[var(--color-text)]">Edit {editingUser.name}</h3>
               <p className="mt-1 text-xs text-[var(--color-muted)]">Account ID {editingUser.id}. Passwords are changed by the account holder.</p>
             </div>
             <button type="button" aria-label="Cancel editing" onClick={() => setEditingUser(null)} className="rounded-lg p-2 text-[var(--color-muted)] hover:bg-[var(--color-input)]">
@@ -245,13 +285,25 @@ export default function AdminUserManager() {
                   </p>
                   <p className="text-[10px] text-[var(--color-muted)]">Joined {new Date(user.createdAt).toLocaleDateString()}</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => { setNotice(""); setEditingUser({ ...emptyUser, ...user }); }}
-                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
-                >
-                  <Pencil className="h-3.5 w-3.5" /> Edit account
-                </button>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setNotice(""); setEditingUser({ ...emptyUser, ...user }); }}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-bold text-[var(--color-text)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit account
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(user)}
+                    disabled={user.id === currentUserId || deletingUserId !== null}
+                    title={user.id === currentUserId ? "You cannot delete your own administrator account." : undefined}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/40 px-3 py-2 text-xs font-bold text-red-400 transition-colors hover:border-red-500 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {deletingUserId === user.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    {deletingUserId === user.id ? "Deleting…" : "Delete account"}
+                  </button>
+                </div>
               </article>
             ))}
           </div>

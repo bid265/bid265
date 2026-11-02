@@ -117,7 +117,7 @@ export default function AdminDashboard({ user, pendingItems = [] }) {
                           <Gavel className="w-3 h-3" /> Opening Target
                         </label>
                         <p className="text-xs font-black text-slate-800 mt-0.5">
-                          MWK {Number(item.startingBid).toLocaleString()}
+                          MWK {Number(item.startingBid).toLocaleString("en-US")}
                         </p>
                       </div>
                       <div>
@@ -125,7 +125,7 @@ export default function AdminDashboard({ user, pendingItems = [] }) {
                           <Landmark className="w-3 h-3" /> Reserve Floor
                         </label>
                         <p className="text-xs font-bold text-amber-700 mt-0.5">
-                          MWK {Number(item.reservePrice).toLocaleString()}
+                          MWK {Number(item.reservePrice).toLocaleString("en-US")}
                         </p>
                       </div>
                     </div>

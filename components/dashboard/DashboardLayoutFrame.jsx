@@ -445,7 +445,9 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
                                 <p className="truncate text-sm font-semibold text-[var(--color-text)]">{auctioneer.name}</p>
                                 <p className="mt-1 truncate text-xs text-[var(--color-muted)]">{auctioneer.businessName || "Auctioneer account"}</p>
                               </div>
-                              <span className="shrink-0 text-xs text-[var(--color-muted)]">{new Date(auctioneer.createdAt).toLocaleDateString()}</span>
+                              <span className="shrink-0 text-xs text-[var(--color-muted)]">
+                                {new Date(auctioneer.createdAt).toLocaleDateString("en-US", { timeZone: "UTC" })}
+                              </span>
                             </article>
                           ))}
                         </div>
@@ -471,7 +473,7 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
                         ["Active Auctions", serializedAuctionItems.filter((item) => ["ACTIVE", "LIVE"].includes(item.status)).length],
                         ["Total Bids", dashboardStats?.totalBids ?? 0],
                         ["Paid Sales", dashboardStats?.completedSales ?? 0],
-                        ["Sales Revenue", `MWK ${Number(dashboardStats?.completedSalesRevenue || 0).toLocaleString()}`],
+                        ["Sales Revenue", `MWK ${Number(dashboardStats?.completedSalesRevenue || 0).toLocaleString("en-US")}`],
                         ["Auction Success Rate", `${dashboardStats?.auctionSuccessRate ?? 0}%`],
                       ].map(([label, value]) => (
                         <div key={label} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-input)] p-5">
