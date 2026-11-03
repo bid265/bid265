@@ -114,11 +114,6 @@ export default function BidderLiveConsole({ auctionItems = [] }) {
     }
   };
 
-  // Handle placing a bid (redirects to auction detail)
-  const handlePlaceBid = (auction) => {
-    router.push(`/auctions/${auction.id || auction.auctionItemId}`);
-  };
-
   // Format time remaining
   const getTimeRemaining = (endTime) => {
     if (!endTime) return "N/A";
@@ -318,28 +313,18 @@ export default function BidderLiveConsole({ auctionItems = [] }) {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="pt-1">
                     <button
                       type="button"
                       disabled={isJoiningId !== null || !["ACTIVE", "LIVE"].includes(auction.status)}
                       onClick={() => handleJoinAuction(auction)}
-                      className="bg-[var(--color-secondary)] hover:bg-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold py-2.5 px-3 rounded-xl transition-all shadow-sm hover:shadow-lg hover:shadow-[var(--color-primary)]/20 flex items-center justify-center gap-1.5"
+                      className="w-full bg-[var(--color-secondary)] hover:bg-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold py-2.5 px-3 rounded-xl transition-all shadow-sm hover:shadow-lg hover:shadow-[var(--color-primary)]/20 flex items-center justify-center gap-1.5"
                     >
                       {isJoiningId === (auction.roomId || auction.id) ? (
                         <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Joining...</>
-                      ) : auction.status === "UPCOMING" ? (
-                        <><Clock className="w-3.5 h-3.5" /> Scheduled</>
                       ) : (
-                        <><Tv className="w-3.5 h-3.5" /> Join Live</>
+                        <><Tv className="w-3.5 h-3.5" /> Join Auction</>
                       )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handlePlaceBid(auction)}
-                      disabled={!["ACTIVE", "LIVE"].includes(auction.status)}
-                      className="bg-[var(--color-input)] hover:bg-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed text-[var(--color-text)] hover:text-[var(--color-bg)] text-xs font-bold py-2.5 px-3 rounded-xl transition-all border border-[var(--color-border)] hover:border-[var(--color-primary)] flex items-center justify-center gap-1.5"
-                    >
-                      <Gavel className="w-3.5 h-3.5" /> Place Bid
                     </button>
                   </div>
                 </div>
