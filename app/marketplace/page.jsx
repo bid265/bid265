@@ -22,6 +22,7 @@ export default async function MarketplacePage({ searchParams }) {
           initialTab={tab}
           initialCategory={params?.category || ""}
           initialQuery={params?.q || ""}
+          showTabSwitcher={false}
         />
       </div>
     </main>

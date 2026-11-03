@@ -575,11 +575,14 @@ export async function updateAuctionToLiveDirectly(itemId, computedRoomId) {
     ) {
       return { success: false, error: "You can only launch auctions that you created." };
     }
-    if (item.status !== "UPCOMING" || item.liveRoomId) {
+    if (!["UPCOMING", "SCHEDULED"].includes(item.status) || item.liveRoomId) {
       return { success: false, error: "Only a scheduled auction can be started." };
     }
     const now = new Date();
-    if (item.startTime > now || item.endTime <= now) {
+    if (item.endTime <= now) {
+      return { success: false, error: "This auction's scheduled end time has passed." };
+    }
+    if (item.startTime > now) {
       return { success: false, error: "This auction can only be started during its scheduled time." };
     }
 
@@ -588,7 +591,7 @@ export async function updateAuctionToLiveDirectly(itemId, computedRoomId) {
         liveRoomId: computedRoomId,
       }).where(and(
         eq(auctionItems.id, cleanId),
-        eq(auctionItems.status, "UPCOMING"),
+        inArray(auctionItems.status, ["UPCOMING", "SCHEDULED"]),
       )).returning();
 
     if (!record) return { success: false, error: "This auction is no longer scheduled." };
