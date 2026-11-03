@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   closeLiveAuctionDirectly,
   getLiveKitToken,
@@ -49,7 +50,6 @@ export default function LiveRoomPage({ params }) {
   const [controlError, setControlError] = useState("");
 
   const bidInputRef = useRef(null);
-  const bidsEndRef = useRef(null);
 
   // Fetch auction item
   useEffect(() => {
@@ -176,10 +176,6 @@ export default function LiveRoomPage({ params }) {
     if (roomId) fetchRoomPass();
   }, [roomId, auctionItemId]);
 
-  useEffect(() => {
-    bidsEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [bids]);
-
   const handleSubmitBid = async (e) => {
     e.preventDefault();
     if (!bidAmount || isNaN(Number(bidAmount))) return;
@@ -260,7 +256,7 @@ export default function LiveRoomPage({ params }) {
       leadingBidders.set(bid.bidderId, bid);
     }
   }
-  const leaderboard = [...leadingBidders.values()].slice(0, 5);
+  const leaderboard = [...leadingBidders.values()];
 
   if (!isLoading && bidError && (!token || !auctionItem)) {
     return (
@@ -341,10 +337,16 @@ export default function LiveRoomPage({ params }) {
         <div className="flex-1 flex flex-col gap-4 min-w-0 overflow-hidden">
 
           {/* Image */}
-          <div className="relative rounded-2xl overflow-hidden border flex-shrink-0"
+          <div className="relative h-[38vh] min-h-[200px] max-h-[340px] rounded-2xl overflow-hidden border flex-shrink-0"
                style={{ backgroundColor: "var(--color-card)", borderColor: "var(--color-border)" }}>
-            <div className="aspect-video relative">
-              <img src={primaryImage} alt={auctionItem.asset?.title} className="w-full h-full object-cover" />
+            <div className="relative h-full w-full">
+              <Image
+                src={primaryImage}
+                alt={auctionItem.asset?.title || "Auction listing"}
+                fill
+                sizes="(max-width: 1024px) 100vw, 75vw"
+                className="object-cover"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0B1E26] via-transparent to-transparent opacity-50" />
 
               <div className="absolute top-3 left-3 flex gap-2">
@@ -417,7 +419,7 @@ export default function LiveRoomPage({ params }) {
         </div>
 
         {/* RIGHT: Sidebar */}
-        <div className="w-full lg:w-[340px] flex flex-col gap-3 min-h-0 flex-shrink-0">
+        <div className="w-full lg:w-[340px] flex flex-col gap-3 min-h-0 flex-shrink-0 overflow-y-auto custom-scrollbar">
 
           {/* Highest Bid */}
           <div className="rounded-2xl p-5 border" style={{ backgroundColor: "var(--color-card)", borderColor: "var(--color-border)" }}>
@@ -448,19 +450,38 @@ export default function LiveRoomPage({ params }) {
             </div>
           )}
 
-          {/* Current bidder leaderboard */}
+          {/* Bidder leaderboard */}
           <div className="rounded-2xl border p-4" style={{ backgroundColor: "var(--color-card)", borderColor: "var(--color-border)" }}>
             <p className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--color-primary)" }}>
-              <Crown size={13} /> Leading bidders
+              <Crown size={13} /> Leaderboard
+            </p>
+            <p className="mb-2 text-[9px]" style={{ color: "var(--color-muted)" }}>
+              {leaderboard.length} bidders ranked by their highest bid · {bids.length} total bids
             </p>
             {leaderboard.length === 0 ? (
               <p className="text-xs" style={{ color: "var(--color-muted)" }}>No bids have been placed yet.</p>
             ) : (
-              <ol className="space-y-2">
+              <ol className="max-h-40 space-y-2 overflow-y-auto pr-1 custom-scrollbar">
                 {leaderboard.map((bid, index) => (
-                  <li key={bid.bidderId} className="flex items-center justify-between text-xs">
-                    <span className="truncate pr-2" style={{ color: "var(--color-text)" }}>{index + 1}. {bid.bidderName || "Bidder"}</span>
-                    <strong className="shrink-0 font-mono" style={{ color: index === 0 ? "var(--color-primary)" : "var(--color-muted)" }}>MWK {Number(bid.amount).toLocaleString()}</strong>
+                  <li
+                    key={bid.bidderId}
+                    className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-xs"
+                    style={{ backgroundColor: index === 0 ? "rgba(165,236,96,0.08)" : "transparent" }}
+                  >
+                    <span className="flex min-w-0 items-center gap-2" style={{ color: "var(--color-text)" }}>
+                      <span className="shrink-0 font-mono" style={{ color: index === 0 ? "var(--color-primary)" : "var(--color-muted)" }}>
+                        {index + 1}.
+                      </span>
+                      <span className="truncate">{bid.bidderName || "Bidder"}</span>
+                      {index === 0 && (
+                        <span className="shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase" style={{ backgroundColor: "rgba(165,236,96,0.15)", color: "var(--color-primary)" }}>
+                          Leading
+                        </span>
+                      )}
+                    </span>
+                    <strong className="shrink-0 font-mono" style={{ color: index === 0 ? "var(--color-primary)" : "var(--color-muted)" }}>
+                      MWK {Number(bid.amount).toLocaleString()}
+                    </strong>
                   </li>
                 ))}
               </ol>
@@ -588,49 +609,6 @@ export default function LiveRoomPage({ params }) {
             </div>
           )}
 
-          {/* Bid History */}
-          <div className="flex-1 rounded-2xl border flex flex-col overflow-hidden min-h-[180px]"
-               style={{ backgroundColor: "var(--color-card)", borderColor: "var(--color-border)" }}>
-            <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: "var(--color-border)" }}>
-              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--color-primary)" }}>Bid History</span>
-              <span className="text-[9px] font-mono" style={{ color: "var(--color-muted)" }}>{bids.length}</span>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5 custom-scrollbar">
-              {bids.length === 0 ? (
-                <div className="h-full flex items-center justify-center opacity-30">
-                  <p className="text-xs" style={{ color: "var(--color-muted)" }}>No bids yet</p>
-                </div>
-              ) : (
-                bids.map((bid, idx) => {
-                  const isHighest = idx === 0;
-                  return (
-                    <div key={bid.id || idx}
-                      className="flex items-center justify-between p-2.5 rounded-lg"
-                      style={{ backgroundColor: isHighest ? "rgba(165,236,96,0.05)" : "transparent" }}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold"
-                             style={{ backgroundColor: isHighest ? "rgba(165,236,96,0.15)" : "var(--color-input)",
-                                      color: isHighest ? "var(--color-primary)" : "var(--color-muted)" }}>
-                          {isHighest ? <Crown size={10} /> : bid.bidderName?.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium">{bid.bidderName || `Bidder #${idx}`}</p>
-                          <p className="text-[9px] font-mono" style={{ color: "var(--color-muted)" }}>
-                            {new Date(bid.createdAt).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}
-                          </p>
-                        </div>
-                      </div>
-                      <p className="text-xs font-black font-mono" style={{ color: isHighest ? "var(--color-primary)" : "var(--color-text)" }}>
-                        {Number(bid.amount).toLocaleString()}
-                      </p>
-                    </div>
-                  );
-                })
-              )}
-              <div ref={bidsEndRef} />
-            </div>
-          </div>
         </div>
       </div>
     </div>
