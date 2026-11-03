@@ -337,7 +337,7 @@ export default function LiveRoomPage({ params }) {
         <div className="flex-1 flex flex-col gap-4 min-w-0 overflow-hidden">
 
           {/* Image */}
-          <div className="relative h-[38vh] min-h-[200px] max-h-[340px] rounded-2xl overflow-hidden border flex-shrink-0"
+          <div className="relative h-[30vh] min-h-[160px] max-h-[280px] rounded-2xl overflow-hidden border flex-shrink-0"
                style={{ backgroundColor: "var(--color-card)", borderColor: "var(--color-border)" }}>
             <div className="relative h-full w-full">
               <Image
@@ -345,7 +345,7 @@ export default function LiveRoomPage({ params }) {
                 alt={auctionItem.asset?.title || "Auction listing"}
                 fill
                 sizes="(max-width: 1024px) 100vw, 75vw"
-                className="object-cover"
+                className="object-contain"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0B1E26] via-transparent to-transparent opacity-50" />
 
