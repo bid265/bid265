@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { auctionAccessPayments, payments, sales } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
+import { syncListingSalePayment } from "@/lib/paymentSales";
+import { and, eq, sum } from "drizzle-orm";
 
 const PAYCHANGU_BASE = "https://api.paychangu.com";
 
@@ -56,13 +57,13 @@ export async function POST(request) {
     }
 
     if (["DAILY_SALE_PURCHASE", "PROPERTY_PURCHASE", "PROPERTY_RENT"].includes(purpose)) {
-      const [purchase] = await db.select().from(sales).where(and(
+      const [purchase] = await db.select({ total: sum(sales.amount) }).from(sales).where(and(
         eq(sales.buyerId, Number(session.user.id)),
         eq(sales.paymentRef, tx_ref),
         eq(sales.kind, purpose),
         eq(sales.status, "PENDING"),
       )).limit(1);
-      if (!purchase || Number(purchase.amount) !== requestedAmount) {
+      if (!purchase || Number(purchase.total) !== requestedAmount) {
         return NextResponse.json({ error: "Purchase does not match an available listing." }, { status: 400 });
       }
     }
@@ -105,21 +106,33 @@ export async function POST(request) {
 
     console.log("[PayChangu] Sending payload:", JSON.stringify(payload, null, 2));
 
-    const payRes = await fetch(`${PAYCHANGU_BASE}/payment`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.PAYCHANGU_SECRET_KEY}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const payData = await payRes.json();
+    let payRes;
+    let payData;
+    try {
+      payRes = await fetch(`${PAYCHANGU_BASE}/payment`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.PAYCHANGU_SECRET_KEY}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      payData = await payRes.json();
+    } catch (gatewayError) {
+      await db.update(payments).set({ gatewayStatus: "failed" }).where(eq(payments.reference, tx_ref));
+      if (["DAILY_SALE_PURCHASE", "PROPERTY_PURCHASE", "PROPERTY_RENT"].includes(purpose)) {
+        await syncListingSalePayment(tx_ref, "failed");
+      }
+      throw gatewayError;
+    }
     console.log("[PayChangu] Raw response:", JSON.stringify(payData, null, 2));
 
     if (!payRes.ok) {
       await db.update(payments).set({ gatewayStatus: "failed" }).where(eq(payments.reference, tx_ref));
+      if (["DAILY_SALE_PURCHASE", "PROPERTY_PURCHASE", "PROPERTY_RENT"].includes(purpose)) {
+        await syncListingSalePayment(tx_ref, "failed");
+      }
       if (accessFeeType) {
         await db.update(auctionAccessPayments).set({ status: "FAILED" })
           .where(eq(auctionAccessPayments.paymentRef, tx_ref));

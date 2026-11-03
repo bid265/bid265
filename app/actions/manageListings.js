@@ -89,7 +89,9 @@ export async function updateListingDetails(kind, listingId, details) {
 
     const title = getRequiredText(details, "title", "Title", 255);
     const description = getRequiredText(details, "description", "Description", 10000);
-    const clientName = getRequiredText(details, "clientName", "Client / location", 191);
+    const clientName = kind === "DAILY_SALE"
+      ? (user.name || "Auctioneer").trim() || "Auctioneer"
+      : getRequiredText(details, "clientName", "Client / location", 191);
     const category = getRequiredText(details, "category", "Category", 100);
 
     return await db.transaction(async (tx) => {

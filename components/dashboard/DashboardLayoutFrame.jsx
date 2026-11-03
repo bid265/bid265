@@ -544,7 +544,7 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
 
             {/* Daily sales */}
             {activeTab === "daily-sales" && isBidder && (
-              <BidderMarketplace initialTab="daily-sales" />
+              <BidderMarketplace initialTab="daily-sales" showTabSwitcher={false} />
             )}
             {activeTab === "daily-sales" && isAuctioneer && (
               <AuctioneerManageAssets initialTab="daily-sales" />
@@ -552,7 +552,7 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
 
             {/* Properties */}
             {activeTab === "properties" && isBidder && (
-              <BidderMarketplace initialTab="properties" />
+              <BidderMarketplace initialTab="properties" showTabSwitcher={false} />
             )}
             {activeTab === "properties" && isAuctioneer && (
               <AuctioneerManageAssets initialTab="properties" />

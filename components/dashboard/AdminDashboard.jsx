@@ -49,7 +49,7 @@ export default function AdminDashboard({ user, pendingItems = [] }) {
           </div>
           <div>
             <h2 className="text-base font-black text-slate-900 tracking-tight">System Control Matrix</h2>
-            <p className="text-xs text-slate-500">Review campaigns uploaded by auctioneers and manage database activations.</p>
+            <p className="text-xs text-slate-500">Review and approve pending auction listings.</p>
           </div>
         </div>
         

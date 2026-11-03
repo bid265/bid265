@@ -133,7 +133,7 @@ export default function Mybids() {
       <div className="bg-[var(--color-card)] p-6 rounded-2xl border border-[var(--color-border)] shadow-sm">
         <h2 className="text-lg font-bold text-[var(--color-text)] mb-2">My Active Bids</h2>
         <p className="text-xs text-[var(--color-muted)] mb-6">
-          Track your current bids and auction participation history.
+          View your active bids and recent auction activity.
         </p>
         <div className="animate-pulse space-y-4">
           <div className="h-6 bg-[var(--color-input)] rounded w-48" />
@@ -159,7 +159,7 @@ export default function Mybids() {
       <div className="bg-[var(--color-card)] p-6 rounded-2xl border border-[var(--color-border)] shadow-sm">
         <h2 className="text-lg font-bold text-[var(--color-text)] mb-2">My Active Bids</h2>
         <p className="text-xs text-[var(--color-muted)] mb-6">
-          Track your current bids and auction participation history.
+          View your active bids and recent auction activity.
         </p>
         <div className="p-12 border border-dashed border-rose-500/30 rounded-xl bg-rose-500/5 text-center">
           <p className="text-sm text-rose-600 font-medium">Failed to load bids</p>
@@ -181,7 +181,7 @@ export default function Mybids() {
       <div className="bg-[var(--color-card)] p-6 rounded-2xl border border-[var(--color-border)] shadow-sm">
         <h2 className="text-lg font-bold text-[var(--color-text)] mb-2">My Active Bids</h2>
         <p className="text-xs text-[var(--color-muted)] mb-6">
-          Track your current bids and auction participation history.
+          View your active bids and recent auction activity.
         </p>
         <div className="p-12 border border-dashed border-[var(--color-border)] rounded-xl bg-[var(--color-input)]/30 text-center">
           <Gavel className="w-12 h-12 text-[var(--color-muted)] mx-auto mb-3 opacity-50" />
@@ -205,7 +205,7 @@ export default function Mybids() {
         <div>
           <h2 className="text-lg font-bold text-[var(--color-text)]">My Active Bids</h2>
           <p className="text-xs text-[var(--color-muted)] mt-1">
-            Track your current bids and auction participation history.
+            View your active bids and recent auction activity.
           </p>
         </div>
         <div className="flex items-center gap-2">

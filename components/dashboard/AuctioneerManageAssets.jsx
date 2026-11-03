@@ -198,7 +198,7 @@ export default function AuctioneerManageAssets({ initialTab = "daily-sales" }) {
         <div>
           <h2 className="text-sm font-bold text-[var(--color-text)]">{isDailySales ? "Daily Sales" : isAuctions ? "Manage Auctions" : "Properties"}</h2>
           <p className="mt-1 text-[11px] text-[var(--color-muted)]">
-            {isDailySales ? "Search, update, archive, and manage available stock." : isAuctions ? "Reschedule untouched auctions or schedule unsold, settled properties again." : "Search, update, and archive sale or lease listings."}
+            {isDailySales ? "Search, update, and manage available stock listings." : isAuctions ? "Review and manage active or upcoming auction listings." : "Search, update, and manage property and lease listings."}
           </p>
         </div>
         {!isAuctions && (
@@ -372,9 +372,11 @@ export default function AuctioneerManageAssets({ initialTab = "daily-sales" }) {
               <textarea required value={editListing.description} onChange={(event) => setEditListing({ ...editListing, description: event.target.value })} className={`${inputClass} min-h-24`} />
             </label>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block space-y-1 text-xs font-semibold text-[var(--color-muted)]">Client / location
-                <input required maxLength={191} value={editListing.clientName || ""} onChange={(event) => setEditListing({ ...editListing, clientName: event.target.value })} className={inputClass} />
-              </label>
+              {!isDailySales && (
+                <label className="block space-y-1 text-xs font-semibold text-[var(--color-muted)]">Client / location
+                  <input required maxLength={191} value={editListing.clientName || ""} onChange={(event) => setEditListing({ ...editListing, clientName: event.target.value })} className={inputClass} />
+                </label>
+              )}
               <label className="block space-y-1 text-xs font-semibold text-[var(--color-muted)]">Category
                 <input required maxLength={100} value={editListing.category || ""} onChange={(event) => setEditListing({ ...editListing, category: event.target.value })} className={inputClass} />
               </label>

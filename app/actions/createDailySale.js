@@ -2,7 +2,7 @@
 
 import { auth } from "../../auth";
 import { db } from "@/lib/db";
-import { assets, auctionItems, dailySales } from "@/lib/db/schema";
+import { assets, auctionItems, dailySales, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { storeAssetImage, validateImageFile } from "@/lib/imageStorage";
 
@@ -24,15 +24,20 @@ export async function createDailySaleListing(formData) {
 
     const title = formData.get("title");
     const description = formData.get("description");
-    const clientName = formData.get("clientName");
     const category = formData.get("category");
     const price = parseFloat(formData.get("price"));
     const stockCount = parseInt(formData.get("stockCount") || "1", 10);
     const rawAttributes = formData.get("dynamicAttributes");
     const parsedAttributes = JSON.parse(rawAttributes || "[]");
+    const auctioneer = await db.query.users.findFirst({
+      where: eq(users.id, Number(session.user.id)),
+      columns: { name: true, district: true },
+    });
+    const auctioneerName = auctioneer?.name || session.user.name || "Auctioneer";
+    const auctioneerDistrict = auctioneer?.district || "Unknown district";
 
-    if (!title || !description || !clientName || isNaN(price) || price <= 0) {
-      return { success: false, error: "Title, description, client name and a valid price are required." };
+    if (!title || !description || isNaN(price) || price <= 0) {
+      return { success: false, error: "Title, description, and a valid price are required." };
     }
 
     const formattedAttributes = {};
@@ -51,8 +56,8 @@ export async function createDailySaleListing(formData) {
       const [newAsset] = await tx.insert(assets).values({
         title,
         description,
-        location: clientName,
-        clientName,
+        location: auctioneerDistrict,
+        clientName: auctioneerName,
         category: category || "OTHER",
         salesType: "DAILY_SALE",
         listingType: "SALE",

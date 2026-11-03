@@ -39,7 +39,7 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
   ]);
 
   const [form, setForm] = useState({
-    title: "", description: "", clientName: "", documentUrl: "", startTime: "", endTime: "",
+    title: "", description: "", documentUrl: "", startTime: "", endTime: "",
     startingBid: "", reservePrice: "", entryFee: "",
     biddingDeposit: "", askingPrice: "", monthlyRent: "", rentDueDay: "1",
     price: "", stockCount: "1",
@@ -68,7 +68,9 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
       const formData = new FormData();
       formData.append("title", form.title);
       formData.append("description", form.description);
-      formData.append("clientName", form.clientName);
+      if (mode !== "daily-sale") {
+        formData.append("clientName", form.clientName || "");
+      }
       formData.append("category", finalCategory);
       // GPS-captured plot dimensions are stored with the listing's specifications.
       const attributesToSave = [...dynamicAttributes];
@@ -147,17 +149,19 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
       </div>
 
       <div className="p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="md:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
             <label className="block text-[10px] font-bold text-[var(--color-muted)] uppercase mb-1">
               {mode === "daily-sale" ? "Item Name / Title" : "Asset Name / Title"}
             </label>
             <input type="text" required placeholder={mode === "daily-sale" ? "e.g. Toyota Hilux 2022 — 4,500km" : "e.g. 3 Bedroom Residential Property - Area 47"} value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className={inputClass} />
           </div>
-          <div>
-            <label className="block text-[10px] font-bold text-[var(--color-muted)] uppercase mb-1">Client Name</label>
-            <input type="text" required placeholder="e.g. John Banda" value={form.clientName} onChange={(e) => setForm({...form, clientName: e.target.value})} className={inputClass} />
-          </div>
+          {mode !== "daily-sale" && (
+            <div>
+              <label className="block text-[10px] font-bold text-[var(--color-muted)] uppercase mb-1">Client Name</label>
+              <input type="text" required placeholder="e.g. John Banda" value={form.clientName || ""} onChange={(e) => setForm({...form, clientName: e.target.value})} className={inputClass} />
+            </div>
+          )}
         </div>
 
         <div>

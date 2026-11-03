@@ -38,6 +38,7 @@ export const authConfig = {
           email: user.email,
           name: user.name,
           role: user.role,
+          mustChangePassword: user.mustChangePassword,
         };
       }
     })
@@ -66,6 +67,7 @@ export const authConfig = {
       if (user) {
         token.id = user.id; 
         token.role = user.role;
+        token.mustChangePassword = Boolean(user.mustChangePassword);
       }
 
       if (account?.provider === "google" && token.email) {
@@ -76,7 +78,15 @@ export const authConfig = {
         if (dbUser) {
           token.id = String(dbUser.id);
           token.role = dbUser.role;
+          token.mustChangePassword = Boolean(dbUser.mustChangePassword);
         }
+      }
+
+      if (token.id) {
+        const [dbUser] = await db.select({ mustChangePassword: users.mustChangePassword }).from(users)
+          .where(eq(users.id, Number(token.id)))
+          .limit(1);
+        token.mustChangePassword = Boolean(dbUser?.mustChangePassword);
       }
 
       return token;
@@ -85,6 +95,7 @@ export const authConfig = {
       if (session.user && token) {
         session.user.id = token.id;
         session.user.role = token.role;
+        session.user.mustChangePassword = Boolean(token.mustChangePassword);
       }
       return session;
     },

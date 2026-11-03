@@ -1,0 +1,1 @@
+ALTER TABLE "sales" DROP CONSTRAINT "sales_paymentRef_unique";

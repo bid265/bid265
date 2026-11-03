@@ -165,8 +165,7 @@ export default function AdminUserManager() {
           <Users className="h-5 w-5 text-[var(--color-primary)]" /> User management
         </h2>
         <p className="mt-1 text-sm text-[var(--color-muted)]">
-          Review all accounts and update account details and roles. Auctioneer verification is managed here; bidder verification is not required.
-          Passwords are never displayed here.
+          Review account details and update user roles and verification status.
         </p>
       </header>
 

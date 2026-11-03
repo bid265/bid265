@@ -101,7 +101,7 @@ export async function GET(request) {
         with: {
           asset: {
             with: {
-              createdBy: { columns: { id: true, name: true, email: true } },
+              createdBy: { columns: { id: true, name: true, email: true, district: true } },
               auctionItems: {
                 with: { images: { where: (image, { eq }) => eq(image.isPrimary, true), limit: 1 } },
               },
@@ -126,6 +126,7 @@ export async function GET(request) {
         .map((sale) => {
           const primaryImage =
             sale.asset.auctionItems?.flatMap((ai) => ai.images || [])[0]?.url || null;
+          const auctioneerDistrict = sale.asset.createdBy?.district || sale.asset.location || "Unknown district";
           return {
             id: sale.id,
             assetId: sale.asset.id,
@@ -134,11 +135,12 @@ export async function GET(request) {
             category: sale.asset.category,
             clientName: sale.asset.clientName || sale.asset.location,
             price: Number(sale.price),
+            stockCount: sale.stockCount,
             attributes: sale.asset.attributes || {},
             imageUrl: primaryImage,
             auctioneerName: sale.asset.createdBy?.name || "Verified Auctioneer",
             auctioneerId: sale.asset.createdBy?.id || null,
-            location: sale.asset.location,
+            location: auctioneerDistrict,
             createdAt: sale.createdAt.toISOString(),
             kind: "DAILY_SALE",
           };

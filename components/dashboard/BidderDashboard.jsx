@@ -158,7 +158,7 @@ export default function BidderDashboard() {
         <div>
           <h1 className="text-2xl font-bold text-[var(--color-text)]">Bidder Dashboard</h1>
           <p className="text-sm text-[var(--color-muted)] mt-1">
-            Welcome back! Here is everything you need to track your auction activity.
+            View your bidding activity, current wins, and upcoming auctions.
           </p>
         </div>
         <Link href="/marketplace?tab=auctions">
