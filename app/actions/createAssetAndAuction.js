@@ -29,6 +29,7 @@ export async function createAssetAndAuction(formData) {
     const rentDueDay = Number(formData.get("rentDueDay"));
     const requestedStartTime = formData.get("startTime");
     const requestedEndTime = formData.get("endTime");
+    const requestedViewingDate = formData.get("viewingDate");
 
     if (session.user.role !== "AUCTIONEER" && session.user.role !== "ADMIN") {
       throw new Error("Only auctioneers can create property listings.");
@@ -52,16 +53,21 @@ export async function createAssetAndAuction(formData) {
     }
     let auctionStartTime = new Date();
     let auctionEndTime = new Date(Date.now() + 4 * 60 * 60 * 1000);
-    if (listingType === "AUCTION" && (requestedStartTime || requestedEndTime)) {
+    let auctionViewingDate = null;
+    if (listingType === "AUCTION") {
       auctionStartTime = new Date(requestedStartTime);
       auctionEndTime = new Date(requestedEndTime);
+      auctionViewingDate = new Date(requestedViewingDate);
       if (
         Number.isNaN(auctionStartTime.getTime()) ||
         Number.isNaN(auctionEndTime.getTime()) ||
+        Number.isNaN(auctionViewingDate.getTime()) ||
         auctionStartTime <= new Date() ||
+        auctionViewingDate <= new Date() ||
+        auctionViewingDate >= auctionStartTime ||
         auctionEndTime <= auctionStartTime
       ) {
-        throw new Error("Choose a future auction start and an end time after it.");
+        throw new Error("Choose a future viewing date before the auction starts and an end time after the auction.");
       }
     }
     if (listingType === "SALE" && (!Number.isFinite(askingPrice) || askingPrice <= 0)) {
@@ -116,6 +122,7 @@ export async function createAssetAndAuction(formData) {
         biddingFee: isAuction ? Number(biddingDeposit) : 0,
         startTime: isAuction ? auctionStartTime : new Date(),
         endTime: isAuction ? auctionEndTime : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        viewingDate: isAuction ? auctionViewingDate : null,
         status: isAuction ? "UPCOMING" : "CLOSED",
       }).returning();
 
@@ -147,6 +154,7 @@ export async function createAssetAndAuction(formData) {
         // Coerce Date objects to explicit plain strings
         startTime: result.auctionItem.startTime.toISOString(),
         endTime: result.auctionItem.endTime.toISOString(),
+        viewingDate: result.auctionItem.viewingDate?.toISOString() || null,
         createdAt: result.auctionItem.createdAt.toISOString(),
         updatedAt: result.auctionItem.updatedAt.toISOString(),
       } : null

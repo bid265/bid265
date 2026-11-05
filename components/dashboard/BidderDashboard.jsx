@@ -431,6 +431,11 @@ export default function BidderDashboard({ onNavigate }) {
                           <p className="text-xs font-semibold text-blue-500">{formatDate(auction.startTime)}</p>
                         </div>
                       </div>
+                      {auction.viewingDate && (
+                        <p className="mt-2 text-xs font-semibold text-[var(--color-primary)]">
+                          Product viewing: {new Date(auction.viewingDate).toLocaleString()}
+                        </p>
+                      )}
                       <Link href={getAuctionHref(auction)}>
                         <button className="w-full mt-3 py-2 rounded-lg text-xs font-semibold bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] hover:bg-[var(--color-secondary)] hover:text-white transition-all">
                           View Details

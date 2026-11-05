@@ -151,6 +151,7 @@ export async function GET() {
       auctionItem: {
         id: reg.auctionItem.id,
         endTime: reg.auctionItem.endTime,
+        viewingDate: reg.auctionItem.viewingDate,
         status: reg.auctionItem.status,
         liveRoomId: reg.auctionItem.liveRoomId,
         asset: reg.auctionItem.asset,

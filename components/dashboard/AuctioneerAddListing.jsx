@@ -39,7 +39,7 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
   ]);
 
   const [form, setForm] = useState({
-    title: "", description: "", startTime: "", endTime: "",
+    title: "", description: "", startTime: "", endTime: "", viewingDate: "",
     startingBid: "", reservePrice: "", entryFee: "",
     biddingDeposit: "", askingPrice: "", monthlyRent: "", rentDueDay: "1",
     price: "", stockCount: "1",
@@ -105,6 +105,7 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
           formData.append("biddingDeposit", form.biddingDeposit);
           formData.append("startTime", new Date(form.startTime).toISOString());
           formData.append("endTime", new Date(form.endTime).toISOString());
+          formData.append("viewingDate", new Date(form.viewingDate).toISOString());
         } else if (propertyType === "SALE") {
           formData.append("askingPrice", form.askingPrice);
         } else {
@@ -264,7 +265,12 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
               <DollarSign className="w-3.5 h-3.5 text-[var(--color-primary)]" />
               <span className="text-[10px] font-bold text-[var(--color-text)] uppercase tracking-wider">Auction Schedule &amp; Financial Framework</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="block text-[10px] font-bold text-[var(--color-muted)] uppercase mb-1">Product Viewing Date &amp; Time</label>
+                <input type="datetime-local" required value={form.viewingDate} onChange={(e) => setForm({...form, viewingDate: e.target.value})} className={inputClass} />
+                <p className="mt-1 text-[10px] text-[var(--color-muted)]">When bidders can view the item before the auction starts.</p>
+              </div>
               <div>
                 <label className="block text-[10px] font-bold text-[var(--color-muted)] uppercase mb-1">Auction Starts</label>
                 <input type="datetime-local" required value={form.startTime} onChange={(e) => setForm({...form, startTime: e.target.value})} className={inputClass} />

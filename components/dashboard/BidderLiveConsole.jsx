@@ -282,6 +282,11 @@ export default function BidderLiveConsole({ auctionItems = [] }) {
                       <MapPin className="w-3 h-3 shrink-0" />
                       <span className="truncate">Client: {auction.location || auction.asset?.location || "N/A"}</span>
                     </div>
+                    {auction.viewingDate && (
+                      <p className="mt-1 text-[10px] font-semibold text-[var(--color-primary)]">
+                        Product viewing: {new Date(auction.viewingDate).toLocaleString()}
+                      </p>
+                    )}
                   </div>
 
                   {/* Price Info */}

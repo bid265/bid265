@@ -138,6 +138,7 @@ export async function GET() {
           registeredBidders: registrationCountByAuction.get(item.id) || 0,
           startTime: item.startTime.toISOString(),
           endTime: item.endTime.toISOString(),
+          viewingDate: item.viewingDate?.toISOString() || null,
           canEdit: item.status === "UPCOMING" &&
             !bidCountByAuction.has(item.id) &&
             !paymentCountByAuction.has(item.id) &&

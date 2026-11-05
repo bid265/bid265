@@ -45,6 +45,7 @@ export default function AuctioneerLiveConsole({ auctionItems = [], onItemsUpdate
           biddingFee: listing.biddingDeposit,
           startTime: listing.startTime,
           endTime: listing.endTime,
+          viewingDate: listing.viewingDate,
           status: listing.status,
           asset: {
             ...item.asset,
@@ -365,6 +366,7 @@ export default function AuctioneerLiveConsole({ auctionItems = [], onItemsUpdate
                     <div className="text-[11px] font-medium text-[var(--color-muted)] grid grid-cols-1 gap-1 pt-1 border-t border-[var(--color-border)] mt-2">
                       <div>Starting Bid: <span className="font-bold text-[var(--color-text)]">MWK {Number(item.startingBid).toLocaleString()}</span></div>
                       <div>Reserve price: <span className="font-bold text-[var(--color-primary)]">MWK {Number(item.reservePrice).toLocaleString()}</span></div>
+                      {item.viewingDate && <div>Product viewing: <span className="font-bold text-[var(--color-text)]">{new Date(item.viewingDate).toLocaleString()}</span></div>}
                     </div>
                   </div>
 

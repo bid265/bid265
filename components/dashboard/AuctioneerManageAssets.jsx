@@ -96,6 +96,7 @@ export default function AuctioneerManageAssets({ initialTab = "daily-sales" }) {
       stockCount: listing.stockCount ?? 1,
       startTimeLocal: listing.startTime ? new Date(new Date(listing.startTime).getTime() - new Date(listing.startTime).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "",
       endTimeLocal: listing.endTime ? new Date(new Date(listing.endTime).getTime() - new Date(listing.endTime).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "",
+      viewingDateLocal: listing.viewingDate ? new Date(new Date(listing.viewingDate).getTime() - new Date(listing.viewingDate).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "",
       imageFile: null,
     });
   };
@@ -116,6 +117,9 @@ export default function AuctioneerManageAssets({ initialTab = "daily-sales" }) {
       }
       if (editListing.startTimeLocal) details.append("startTime", new Date(editListing.startTimeLocal).toISOString());
       if (editListing.endTimeLocal) details.append("endTime", new Date(editListing.endTimeLocal).toISOString());
+      if (editListing.kind === "AUCTION" && editListing.viewingDateLocal) {
+        details.append("viewingDate", new Date(editListing.viewingDateLocal).toISOString());
+      }
       if (editListing.imageFile) details.append("assetImageFile", editListing.imageFile);
       const result = await updateListingDetails(editListing.kind, listingId, details);
       if (!result.success) throw new Error(result.error || "Could not update listing.");
@@ -136,7 +140,7 @@ export default function AuctioneerManageAssets({ initialTab = "daily-sales" }) {
       .toISOString().slice(0, 16);
     setEditError("");
     setReuseListing(listing);
-    setReuseSchedule({ startTime: toLocalInput(start), endTime: toLocalInput(end) });
+    setReuseSchedule({ startTime: toLocalInput(start), endTime: toLocalInput(end), viewingDate: toLocalInput(new Date(start.getTime() - 60 * 60 * 1000)) });
   };
 
   const handleReuse = async (event) => {
@@ -148,6 +152,7 @@ export default function AuctioneerManageAssets({ initialTab = "daily-sales" }) {
       const schedule = new FormData();
       schedule.append("startTime", new Date(reuseSchedule.startTime).toISOString());
       schedule.append("endTime", new Date(reuseSchedule.endTime).toISOString());
+      schedule.append("viewingDate", new Date(reuseSchedule.viewingDate).toISOString());
       const result = await reuseAuction(reuseListing.id, schedule);
       if (!result.success) throw new Error(result.error || "Could not schedule another auction.");
       setReuseListing(null);
@@ -332,7 +337,7 @@ export default function AuctioneerManageAssets({ initialTab = "daily-sales" }) {
                           {busyId === listing.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : listing.isAvailable ? <PackageCheck className="h-3.5 w-3.5 text-emerald-500" /> : <PackageX className="h-3.5 w-3.5 text-rose-400" />}
                         </button>
                       )}
-                                    <button type="button" onClick={() => startEdit(listing)} disabled={!manageable} aria-label={`Edit ${listing.title}`} title={!manageable ? "This listing cannot be edited after it has activity or is no longer available." : "Edit or reschedule listing"} className="rounded-lg border border-[var(--color-border)] p-2 text-[var(--color-muted)] hover:text-[var(--color-primary)] disabled:opacity-40">
+                      <button type="button" onClick={() => startEdit(listing)} disabled={!manageable} aria-label={`Edit ${listing.title}`} title={!manageable ? "This listing cannot be edited after it has activity or is no longer available." : "Edit or reschedule listing"} className="rounded-lg border border-[var(--color-border)] p-2 text-[var(--color-muted)] hover:text-[var(--color-primary)] disabled:opacity-40">
                         <Edit2 className="h-3.5 w-3.5" />
                       </button>
                       {isAuctions && listing.canReuse && (
@@ -345,7 +350,12 @@ export default function AuctioneerManageAssets({ initialTab = "daily-sales" }) {
                       </button>
                     </div>
                   </div>
-                  {isAuctions && <p className="mt-1 text-[10px] text-[var(--color-muted)]">Starts {new Date(listing.startTime).toLocaleString()} · ends {new Date(listing.endTime).toLocaleString()}</p>}
+                  {isAuctions && (
+                    <p className="mt-1 text-[10px] text-[var(--color-muted)]">
+                      {listing.viewingDate ? `Viewing ${new Date(listing.viewingDate).toLocaleString()} · ` : ""}
+                      Starts {new Date(listing.startTime).toLocaleString()} · ends {new Date(listing.endTime).toLocaleString()}
+                    </p>
+                  )}
                   {!available && isDailySales && listing.stockCount < 1 && (
                     <p className="mt-1 text-[10px] text-[var(--color-muted)]">Edit this listing to add stock before restocking.</p>
                   )}
@@ -396,6 +406,9 @@ export default function AuctioneerManageAssets({ initialTab = "daily-sales" }) {
                   ))}
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block space-y-1 text-xs font-semibold text-[var(--color-muted)]">Product viewing date &amp; time
+                    <input required type="datetime-local" value={editListing.viewingDateLocal} onChange={(event) => setEditListing({ ...editListing, viewingDateLocal: event.target.value })} className={inputClass} />
+                  </label>
                   <label className="block space-y-1 text-xs font-semibold text-[var(--color-muted)]">Auction starts
                     <input required type="datetime-local" value={editListing.startTimeLocal} onChange={(event) => setEditListing({ ...editListing, startTimeLocal: event.target.value })} className={inputClass} />
                   </label>
@@ -448,6 +461,9 @@ export default function AuctioneerManageAssets({ initialTab = "daily-sales" }) {
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block space-y-1 text-xs font-semibold text-[var(--color-muted)]">Auction starts
                 <input required type="datetime-local" value={reuseSchedule.startTime} onChange={(event) => setReuseSchedule((current) => ({ ...current, startTime: event.target.value }))} className={inputClass} />
+              </label>
+              <label className="block space-y-1 text-xs font-semibold text-[var(--color-muted)]">Product viewing date &amp; time
+                <input required type="datetime-local" value={reuseSchedule.viewingDate} onChange={(event) => setReuseSchedule((current) => ({ ...current, viewingDate: event.target.value }))} className={inputClass} />
               </label>
               <label className="block space-y-1 text-xs font-semibold text-[var(--color-muted)]">Auction ends
                 <input required type="datetime-local" value={reuseSchedule.endTime} onChange={(event) => setReuseSchedule((current) => ({ ...current, endTime: event.target.value }))} className={inputClass} />

@@ -310,6 +310,7 @@ type LandingAuction = {
   imageUrl: string | null;
   auctioneerName: string;
   endTime: string;
+  viewingDate: string | null;
 };
 
 // Category artwork lives in /public/categories. Matching is keyword based so custom
@@ -532,6 +533,9 @@ function AuctionListingsSection() {
                     <strong className="text-[#BFDBFE]">MWK {Number(auction.currentBid || auction.startingBid).toLocaleString()}</strong>
                   </div>
                   <p className="text-xs text-[#C6D4D6]">By {auction.auctioneerName} · Ends {new Date(auction.endTime).toLocaleString()}</p>
+                  {auction.viewingDate && (
+                    <p className="text-xs font-semibold text-[#BFDBFE]">Product viewing: {new Date(auction.viewingDate).toLocaleString()}</p>
+                  )}
                   <Link
                     href={session?.user
                       ? `/dashboard?tab=${"role" in session.user && session.user.role === "ADMIN" ? "auctioneers" : "live-auctions"}`

@@ -172,13 +172,17 @@ export async function updateListingDetails(kind, listingId, details) {
         }
         const startTime = new Date(getValue(details, "startTime"));
         const endTime = new Date(getValue(details, "endTime"));
+        const viewingDate = new Date(getValue(details, "viewingDate"));
         if (
           Number.isNaN(startTime.getTime()) ||
           Number.isNaN(endTime.getTime()) ||
+          Number.isNaN(viewingDate.getTime()) ||
           startTime <= new Date() ||
+          viewingDate <= new Date() ||
+          viewingDate >= startTime ||
           endTime <= startTime
         ) {
-          return { success: false, error: "Choose a future auction start and an end time after it." };
+          return { success: false, error: "Choose a future viewing date before the auction starts and an end time after the auction." };
         }
         await tx.update(auctionItems).set({
           startingBid,
@@ -187,6 +191,7 @@ export async function updateListingDetails(kind, listingId, details) {
           biddingFee: biddingDeposit,
           startTime,
           endTime,
+          viewingDate,
           status: "UPCOMING",
           liveRoomId: null,
           reservePriceDisclosed: false,
@@ -228,13 +233,17 @@ export async function reuseAuction(auctionItemId, schedule) {
 
     const startTime = new Date(getValue(schedule, "startTime"));
     const endTime = new Date(getValue(schedule, "endTime"));
+    const viewingDate = new Date(getValue(schedule, "viewingDate"));
     if (
       Number.isNaN(startTime.getTime()) ||
       Number.isNaN(endTime.getTime()) ||
+      Number.isNaN(viewingDate.getTime()) ||
       startTime <= new Date() ||
+      viewingDate <= new Date() ||
+      viewingDate >= startTime ||
       endTime <= startTime
     ) {
-      return { success: false, error: "Choose a future auction start and an end time after it." };
+      return { success: false, error: "Choose a future viewing date before the auction starts and an end time after the auction." };
     }
 
     const result = await db.transaction(async (tx) => {
@@ -288,6 +297,7 @@ export async function reuseAuction(auctionItemId, schedule) {
         biddingFee: oldAuction.biddingFee,
         startTime,
         endTime,
+        viewingDate,
         status: "UPCOMING",
       }).returning({ id: auctionItems.id });
 

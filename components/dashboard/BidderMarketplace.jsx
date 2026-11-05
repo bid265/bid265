@@ -414,6 +414,11 @@ export default function BidderMarketplace({ initialTab = "daily-sales", initialC
                   <User className="w-3 h-3 text-[var(--color-primary)]" />
                   Client: {item.clientName || item.location || "N/A"}
                 </div>
+                {activeTab === "auctions" && item.viewingDate && (
+                  <p className="text-[10px] font-semibold text-[var(--color-primary)]">
+                    Product viewing: {new Date(item.viewingDate).toLocaleString()}
+                  </p>
+                )}
 
                 <div className="flex items-center gap-1 text-[10px] text-[var(--color-muted)] mt-auto">
                   <User className="w-3 h-3" />

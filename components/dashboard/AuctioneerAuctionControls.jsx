@@ -25,6 +25,7 @@ export default function AuctioneerAuctionControls({ listing, onDeleted, onUpdate
       ...listing,
       startTimeLocal: toLocalDateTime(listing.startTime),
       endTimeLocal: toLocalDateTime(listing.endTime),
+      viewingDateLocal: listing.viewingDate ? toLocalDateTime(listing.viewingDate) : "",
       imageFile: null,
     });
   };
@@ -41,6 +42,7 @@ export default function AuctioneerAuctionControls({ listing, onDeleted, onUpdate
       }
       details.append("startTime", new Date(editListing.startTimeLocal).toISOString());
       details.append("endTime", new Date(editListing.endTimeLocal).toISOString());
+      details.append("viewingDate", new Date(editListing.viewingDateLocal).toISOString());
       if (editListing.imageFile) details.append("assetImageFile", editListing.imageFile);
 
       const result = await updateListingDetails("AUCTION", listing.id, details);
@@ -132,6 +134,9 @@ export default function AuctioneerAuctionControls({ listing, onDeleted, onUpdate
               ))}
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block space-y-1 text-xs font-semibold text-[var(--color-muted)]">Product viewing date &amp; time
+                <input required type="datetime-local" value={editListing.viewingDateLocal} onChange={(event) => setEditListing({ ...editListing, viewingDateLocal: event.target.value })} className={inputClass} />
+              </label>
               <label className="block space-y-1 text-xs font-semibold text-[var(--color-muted)]">Auction starts
                 <input required type="datetime-local" value={editListing.startTimeLocal} onChange={(event) => setEditListing({ ...editListing, startTimeLocal: event.target.value })} className={inputClass} />
               </label>
