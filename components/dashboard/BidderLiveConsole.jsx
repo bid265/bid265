@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getActiveLiveAuctions, getLiveKitToken } from "@/app/actions/liveAuction";
 import { hasClearedAuctionGate } from "@/app/actions/auctionAccess";
 import AuctionAccessGate from "@/components/dashboard/AuctionAccessGate";
+import { formatDateOnly } from "@/lib/dateFormatting";
 import { 
   Tv, 
   MapPin, 
@@ -284,7 +285,7 @@ export default function BidderLiveConsole({ auctionItems = [] }) {
                     </div>
                     {auction.viewingDate && (
                       <p className="mt-1 text-[10px] font-semibold text-[var(--color-primary)]">
-                        Product viewing: {new Date(auction.viewingDate).toLocaleString()}
+                        Product viewing: {formatDateOnly(auction.viewingDate)}
                       </p>
                     )}
                   </div>

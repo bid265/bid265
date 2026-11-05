@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { deleteListing, reuseAuction, updateListingDetails } from "@/app/actions/manageListings";
 import { toggleDailySaleAvailability } from "@/app/actions/createDailySale";
+import { formatDateOnly } from "@/lib/dateFormatting";
 
 const inputClass = "w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-input)] px-3 py-2.5 text-sm text-[var(--color-text)] outline-none focus:border-[var(--color-primary)]";
 
@@ -352,7 +353,7 @@ export default function AuctioneerManageAssets({ initialTab = "daily-sales" }) {
                   </div>
                   {isAuctions && (
                     <p className="mt-1 text-[10px] text-[var(--color-muted)]">
-                      {listing.viewingDate ? `Viewing ${new Date(listing.viewingDate).toLocaleString()} · ` : ""}
+                      {listing.viewingDate ? `Viewing ${formatDateOnly(listing.viewingDate)} · ` : ""}
                       Starts {new Date(listing.startTime).toLocaleString()} · ends {new Date(listing.endTime).toLocaleString()}
                     </p>
                   )}

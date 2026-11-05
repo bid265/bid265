@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { formatDate } from "@/lib/payments";
 import { fetchUserProfile, initiatePayment, parseName } from "@/lib/payments";
+import { formatDateOnly } from "@/lib/dateFormatting";
 import { startDailySaleCartPurchase, startListingPurchase } from "@/app/actions/listingPurchase";
 
 const CALLBACK_URL = process.env.NEXT_PUBLIC_PAYCHANGU_CALLBACK_URL;
@@ -416,7 +417,7 @@ export default function BidderMarketplace({ initialTab = "daily-sales", initialC
                 </div>
                 {activeTab === "auctions" && item.viewingDate && (
                   <p className="text-[10px] font-semibold text-[var(--color-primary)]">
-                    Product viewing: {new Date(item.viewingDate).toLocaleString()}
+                    Product viewing: {formatDateOnly(item.viewingDate)}
                   </p>
                 )}
 

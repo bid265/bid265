@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { formatDateOnly } from "@/lib/dateFormatting";
 import {
   Gavel,
   Clock,
@@ -433,7 +434,7 @@ export default function BidderDashboard({ onNavigate }) {
                       </div>
                       {auction.viewingDate && (
                         <p className="mt-2 text-xs font-semibold text-[var(--color-primary)]">
-                          Product viewing: {new Date(auction.viewingDate).toLocaleString()}
+                          Product viewing: {formatDateOnly(auction.viewingDate)}
                         </p>
                       )}
                       <Link href={getAuctionHref(auction)}>

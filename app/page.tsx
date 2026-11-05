@@ -5,6 +5,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Gavel } from "lucide-react";
+import { formatDateOnly } from "@/lib/dateFormatting";
 
 // ═══════════════════════════════════════════════════════════════════
 // COLOR PALETTE
@@ -534,7 +535,7 @@ function AuctionListingsSection() {
                   </div>
                   <p className="text-xs text-[#C6D4D6]">By {auction.auctioneerName} · Ends {new Date(auction.endTime).toLocaleString()}</p>
                   {auction.viewingDate && (
-                    <p className="text-xs font-semibold text-[#BFDBFE]">Product viewing: {new Date(auction.viewingDate).toLocaleString()}</p>
+                    <p className="text-xs font-semibold text-[#BFDBFE]">Product viewing: {formatDateOnly(auction.viewingDate)}</p>
                   )}
                   <Link
                     href={session?.user

@@ -7,6 +7,7 @@ import { hasClearedAuctionGate } from "@/app/actions/auctionAccess";
 import AuctionAccessGate from "@/components/dashboard/AuctionAccessGate";
 import AuctioneerAuctionControls from "@/components/dashboard/AuctioneerAuctionControls";
 import { useRouter } from "next/navigation";
+import { formatDateOnly } from "@/lib/dateFormatting";
 
 const createLiveRoomId = (itemId) => `room-lot-${itemId}-${Date.now()}`;
 
@@ -366,7 +367,7 @@ export default function AuctioneerLiveConsole({ auctionItems = [], onItemsUpdate
                     <div className="text-[11px] font-medium text-[var(--color-muted)] grid grid-cols-1 gap-1 pt-1 border-t border-[var(--color-border)] mt-2">
                       <div>Starting Bid: <span className="font-bold text-[var(--color-text)]">MWK {Number(item.startingBid).toLocaleString()}</span></div>
                       <div>Reserve price: <span className="font-bold text-[var(--color-primary)]">MWK {Number(item.reservePrice).toLocaleString()}</span></div>
-                      {item.viewingDate && <div>Product viewing: <span className="font-bold text-[var(--color-text)]">{new Date(item.viewingDate).toLocaleString()}</span></div>}
+                      {item.viewingDate && <div>Product viewing: <span className="font-bold text-[var(--color-text)]">{formatDateOnly(item.viewingDate)}</span></div>}
                     </div>
                   </div>
 
