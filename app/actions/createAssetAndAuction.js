@@ -63,11 +63,9 @@ export async function createAssetAndAuction(formData) {
         Number.isNaN(auctionEndTime.getTime()) ||
         Number.isNaN(auctionViewingDate.getTime()) ||
         auctionStartTime <= new Date() ||
-        auctionViewingDate <= new Date() ||
-        auctionViewingDate >= auctionStartTime ||
         auctionEndTime <= auctionStartTime
       ) {
-        throw new Error("Choose a future viewing date before the auction starts and an end time after the auction.");
+        throw new Error("Choose valid auction start and end times, with the end time after the start.");
       }
     }
     if (listingType === "SALE" && (!Number.isFinite(askingPrice) || askingPrice <= 0)) {

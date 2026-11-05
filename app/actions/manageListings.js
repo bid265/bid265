@@ -178,11 +178,9 @@ export async function updateListingDetails(kind, listingId, details) {
           Number.isNaN(endTime.getTime()) ||
           Number.isNaN(viewingDate.getTime()) ||
           startTime <= new Date() ||
-          viewingDate <= new Date() ||
-          viewingDate >= startTime ||
           endTime <= startTime
         ) {
-          return { success: false, error: "Choose a future viewing date before the auction starts and an end time after the auction." };
+          return { success: false, error: "Choose valid auction start and end times, with the end time after the start." };
         }
         await tx.update(auctionItems).set({
           startingBid,
@@ -239,11 +237,9 @@ export async function reuseAuction(auctionItemId, schedule) {
       Number.isNaN(endTime.getTime()) ||
       Number.isNaN(viewingDate.getTime()) ||
       startTime <= new Date() ||
-      viewingDate <= new Date() ||
-      viewingDate >= startTime ||
       endTime <= startTime
     ) {
-      return { success: false, error: "Choose a future viewing date before the auction starts and an end time after the auction." };
+      return { success: false, error: "Choose valid auction start and end times, with the end time after the start." };
     }
 
     const result = await db.transaction(async (tx) => {
