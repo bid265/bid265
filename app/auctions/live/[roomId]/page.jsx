@@ -231,7 +231,7 @@ export default function LiveRoomPage({ params }) {
   };
 
   const handleCloseAuction = async () => {
-    if (!window.confirm("End this live auction and settle its bids?")) return;
+    if (!window.confirm("Close this live auction now?")) return;
     setIsUpdatingControls(true);
     setControlError("");
     try {
@@ -603,7 +603,7 @@ export default function LiveRoomPage({ params }) {
                 style={{ backgroundColor: "rgba(239,68,68,0.08)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.15)" }}
               >
                 {isUpdatingControls ? <Loader2 size={14} className="animate-spin" /> : <Power size={14} />}
-                {isSettled ? "Auction settled" : isAuctionClosed ? "Settle auction" : "End auction"}
+                {isSettled ? "Auction closed" : "Close auction"}
               </button>
               {controlError && <p className="mt-2 text-xs text-rose-400" role="alert">{controlError}</p>}
             </div>

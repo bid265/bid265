@@ -43,7 +43,7 @@ export async function GET(request) {
         refundCount: result.refundCount,
         emailErrors: result.emailResult?.errors || [],
       };
-      if (!result.alreadySettled) {
+      if (!result.alreadySettled && !result.pendingApproval) {
         try {
           await pusher.trigger(`auction-room-${item.id}`, "auction-closed", { auctionItemId: item.id });
         } catch (error) {
