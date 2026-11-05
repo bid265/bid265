@@ -8,6 +8,7 @@ import {
   auctionSettlements,
   bids,
   dailySales,
+  users,
 } from "@/lib/db/schema";
 import { count, desc, inArray } from "drizzle-orm";
 
@@ -59,7 +60,8 @@ export async function GET() {
       item.asset.listingType === "AUCTION"
     );
     const auctionIds = auctionRows.map((item) => item.id);
-    const [bidCounts, paymentCounts, registrationCounts, settlements] = auctionIds.length
+    const approvalAuctionIds = auctionRows.filter((item) => item.status === "PENDING_APPROVAL").map((item) => item.id);
+    const [bidCounts, paymentCounts, registrationCounts, settlements, approvalBids] = auctionIds.length
       ? await Promise.all([
         db.select({ auctionItemId: bids.auctionItemId, total: count() })
           .from(bids).where(inArray(bids.auctionItemId, auctionIds)).groupBy(bids.auctionItemId),
@@ -74,12 +76,26 @@ export async function GET() {
           winnerId: auctionSettlements.winnerId,
         })
           .from(auctionSettlements).where(inArray(auctionSettlements.auctionItemId, auctionIds)),
+        approvalAuctionIds.length
+          ? db.select({
+              auctionItemId: bids.auctionItemId,
+              amount: bids.amount,
+              bidderName: users.name,
+            }).from(bids)
+              .innerJoin(users, eq(bids.bidderId, users.id))
+              .where(inArray(bids.auctionItemId, approvalAuctionIds))
+              .orderBy(desc(bids.amount), desc(bids.createdAt), desc(bids.id))
+          : Promise.resolve([]),
       ])
-      : [[], [], [], []];
+      : [[], [], [], [], []];
     const bidCountByAuction = new Map(bidCounts.map((row) => [row.auctionItemId, row.total]));
     const paymentCountByAuction = new Map(paymentCounts.map((row) => [row.auctionItemId, row.total]));
     const registrationCountByAuction = new Map(registrationCounts.map((row) => [row.auctionItemId, row.total]));
     const settlementByAuction = new Map(settlements.map((row) => [row.auctionItemId, row]));
+    const approvalBidByAuction = new Map();
+    for (const bid of approvalBids) {
+      if (!approvalBidByAuction.has(bid.auctionItemId)) approvalBidByAuction.set(bid.auctionItemId, bid);
+    }
 
     return NextResponse.json({
       success: true,
@@ -117,6 +133,7 @@ export async function GET() {
           biddingDeposit: Number(item.biddingFee),
           status: item.status,
           currentBid: item.bids[0] ? Number(item.bids[0].amount) : null,
+          currentBidder: approvalBidByAuction.get(item.id)?.bidderName || null,
           bidCount: bidCountByAuction.get(item.id) || 0,
           registeredBidders: registrationCountByAuction.get(item.id) || 0,
           startTime: item.startTime.toISOString(),

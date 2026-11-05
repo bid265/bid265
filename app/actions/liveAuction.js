@@ -661,3 +661,56 @@ export async function closeLiveAuctionDirectly(itemId) {
     return { success: false, error: err.message };
   }
 }
+
+export async function resolveAuctionApproval(auctionItemId, decision) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id || !["AUCTIONEER", "ADMIN"].includes(session.user.role)) {
+      return { success: false, error: "Only the auctioneer or an administrator can resolve this auction." };
+    }
+
+    const cleanId = Number(auctionItemId);
+    if (!Number.isInteger(cleanId) || cleanId <= 0 || !["ACCEPT", "DECLINE"].includes(decision)) {
+      return { success: false, error: "Invalid auction approval request." };
+    }
+
+    const item = await db.query.auctionItems.findFirst({
+      where: eq(auctionItems.id, cleanId),
+      columns: { id: true, status: true, endTime: true },
+      with: { asset: { columns: { createdById: true, listingType: true, isListed: true } } },
+    });
+    if (!item || item.asset?.listingType !== "AUCTION") {
+      return { success: false, error: "Auction item not found." };
+    }
+    if (!item.asset.isListed) {
+      return { success: false, error: "This auction listing has been removed." };
+    }
+    if (session.user.role !== "ADMIN" && item.asset.createdById !== Number(session.user.id)) {
+      return { success: false, error: "You can only resolve approvals for auctions that you created." };
+    }
+    if (item.status !== "PENDING_APPROVAL") {
+      return { success: false, error: "This auction is not awaiting a below-reserve decision." };
+    }
+
+    const settlement = await settleAuction(cleanId, {
+      acceptBelowReserve: decision === "ACCEPT",
+      declineBelowReserve: decision === "DECLINE",
+    });
+    if (settlement.alreadySettled || settlement.pendingApproval) {
+      return { success: false, error: "This auction approval was already resolved." };
+    }
+
+    let notificationError = null;
+    try {
+      await pusher.trigger(`auction-room-${cleanId}`, "auction-closed", { auctionItemId: cleanId });
+    } catch (error) {
+      console.error("[Auction approval broadcast]", error);
+      notificationError = "Bidders may need to refresh to see the final auction result.";
+    }
+
+    return { success: true, settlement, ...(notificationError ? { notificationError } : {}) };
+  } catch (error) {
+    console.error("[Auction approval resolution]", error);
+    return { success: false, error: error.message || "Could not resolve this auction approval." };
+  }
+}

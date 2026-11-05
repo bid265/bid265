@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { Loader2, LayoutGrid, ArrowRight, Hourglass, Eye, CalendarPlus, Search, Filter, ChevronDown } from "lucide-react";
-import { getLiveKitToken, updateAuctionToLiveDirectly } from "@/app/actions/liveAuction";
+import { Loader2, LayoutGrid, ArrowRight, Hourglass, Eye, CalendarPlus, Search, Filter, ChevronDown, CheckCircle2, XCircle } from "lucide-react";
+import { getLiveKitToken, resolveAuctionApproval, updateAuctionToLiveDirectly } from "@/app/actions/liveAuction";
 import { hasClearedAuctionGate } from "@/app/actions/auctionAccess";
 import AuctionAccessGate from "@/components/dashboard/AuctionAccessGate";
 import AuctioneerAuctionControls from "@/components/dashboard/AuctioneerAuctionControls";
@@ -22,11 +22,12 @@ export default function AuctioneerLiveConsole({ auctionItems = [], onItemsUpdate
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [managementListings, setManagementListings] = useState({});
   const [managementError, setManagementError] = useState("");
+  const [resolvingApprovalId, setResolvingApprovalId] = useState(null);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   const loadManagementListings = useCallback(async () => {
     try {
       setManagementError("");
-      setManagementListings({});
       const response = await fetch("/api/listings");
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Failed to load auction controls.");
@@ -63,6 +64,22 @@ export default function AuctioneerLiveConsole({ auctionItems = [], onItemsUpdate
     const timer = setTimeout(loadManagementListings, 0);
     return () => clearTimeout(timer);
   }, [loadManagementListings]);
+
+  useEffect(() => {
+    const interval = setInterval(loadManagementListings, 30000);
+    return () => clearInterval(interval);
+  }, [loadManagementListings]);
+
+  useEffect(() => {
+    const nextEndTime = itemsList
+      .map((item) => new Date(item.endTime).getTime())
+      .filter((endTime) => Number.isFinite(endTime) && endTime > currentTime)
+      .sort((left, right) => left - right)[0];
+    if (!nextEndTime) return undefined;
+
+    const timeout = setTimeout(() => setCurrentTime(Date.now()), nextEndTime - currentTime);
+    return () => clearTimeout(timeout);
+  }, [itemsList, currentTime]);
 
   const handleAuctionDeleted = (auctionId) => {
     const updated = itemsList.filter((item) => item.id !== auctionId);
@@ -148,11 +165,29 @@ export default function AuctioneerLiveConsole({ auctionItems = [], onItemsUpdate
     }
   };
 
+  const handleResolveApproval = async (auctionItemId, decision) => {
+    try {
+      setResolvingApprovalId(auctionItemId);
+      const result = await resolveAuctionApproval(auctionItemId, decision);
+      if (!result.success) throw new Error(result.error || "Could not resolve this auction approval.");
+      await loadManagementListings();
+    } catch (error) {
+      setManagementError(error.message || "Could not resolve this auction approval.");
+    } finally {
+      setResolvingApprovalId(null);
+    }
+  };
+
+  const approvalItems = itemsList.filter((item) => item.status === "PENDING_APPROVAL");
   const visibleActiveItems = itemsList.filter((item) => {
     const text = `${item.asset?.title || ""} ${item.asset?.description || ""} ${item.asset?.location || ""}`.toLowerCase();
     const isLive = item.status === "ACTIVE" || item.status === "LIVE";
     const matchesStatus = !statusFilter || (statusFilter === "LIVE" ? isLive : !isLive);
-    return item.status !== "CLOSED" && text.includes(search.trim().toLowerCase()) && matchesStatus;
+    const endTime = item.endTime ? new Date(item.endTime).getTime() : Infinity;
+    return !["CLOSED", "PENDING_APPROVAL"].includes(item.status) &&
+      endTime > currentTime &&
+      text.includes(search.trim().toLowerCase()) &&
+      matchesStatus;
   });
 
   return (
@@ -181,6 +216,63 @@ export default function AuctioneerLiveConsole({ auctionItems = [], onItemsUpdate
           roomId={gateAuction.roomId}
           onAccessGranted={handleAccessGranted}
         />
+      )}
+
+      {approvalItems.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-amber-500" />
+            <h3 className="text-xs font-black uppercase tracking-wider text-[var(--color-muted)]">
+              Below-Reserve Approvals ({approvalItems.length})
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {approvalItems.map((item) => {
+              const listing = managementListings[item.id];
+              return (
+                <article key={item.id} className="flex flex-col justify-between gap-4 rounded-2xl border border-amber-500/30 bg-[var(--color-card)] p-4 shadow-sm md:p-5">
+                  <div className="space-y-2">
+                    <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600">
+                      Lot #{item.id} · Awaiting decision
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-bold text-[var(--color-text)]">{item.asset?.title || listing?.title || "Auction"}</h4>
+                      <p className="mt-1 text-xs text-[var(--color-muted)]">
+                        Highest bid: {listing?.currentBid == null ? "No bid" : `MWK ${Number(listing.currentBid).toLocaleString()}`}
+                        {listing?.currentBidder ? ` by ${listing.currentBidder}` : ""}
+                      </p>
+                      <p className="text-xs text-[var(--color-muted)]">
+                        Reserve price: MWK {Number(item.reservePrice ?? listing?.reservePrice).toLocaleString()}
+                      </p>
+                    </div>
+                    <p className="text-xs text-[var(--color-muted)]">
+                      The reserve was not met. Accept the highest bid to award the auction below reserve, or decline it.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleResolveApproval(item.id, "ACCEPT")}
+                      disabled={resolvingApprovalId !== null}
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      {resolvingApprovalId === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                      Accept bid
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleResolveApproval(item.id, "DECLINE")}
+                      disabled={resolvingApprovalId !== null}
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-rose-500/30 px-3 py-2.5 text-xs font-bold text-rose-600 transition hover:bg-rose-500/10 disabled:opacity-50"
+                    >
+                      <XCircle className="h-3.5 w-3.5" /> Decline bid
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
       )}
       
       {/* 📋 CAMPAIGNS BLOCK */}
