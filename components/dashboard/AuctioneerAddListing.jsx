@@ -39,7 +39,7 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
   ]);
 
   const [form, setForm] = useState({
-    title: "", description: "", documentUrl: "", startTime: "", endTime: "",
+    title: "", description: "", startTime: "", endTime: "",
     startingBid: "", reservePrice: "", entryFee: "",
     biddingDeposit: "", askingPrice: "", monthlyRent: "", rentDueDay: "1",
     price: "", stockCount: "1",
@@ -99,7 +99,6 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
         const propertyType = mode === "auction" ? "AUCTION" : listingType;
         formData.append("listingType", propertyType);
         if (propertyType === "AUCTION") {
-          formData.append("documentUrl", form.documentUrl);
           formData.append("startingBid", form.startingBid);
           formData.append("reservePrice", form.reservePrice);
           formData.append("entryFee", form.entryFee);
@@ -193,7 +192,7 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <div>
             <label className="block text-[10px] font-bold text-[var(--color-muted)] uppercase mb-1">Display Image Upload</label>
             <div className="relative border-2 border-dashed border-[var(--color-border)] rounded-xl p-4 bg-[var(--color-input)]/30 flex flex-col items-center justify-center hover:bg-[var(--color-input)] transition-all">
@@ -204,10 +203,6 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
               <input type="file" accept="image/*" onChange={(e) => setUploadedFile(e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
             </div>
           </div>
-          {mode === "auction" && <div>
-            <label className="block text-[10px] font-bold text-[var(--color-muted)] uppercase mb-1">Legal Document Link</label>
-            <input type="url" placeholder="https://your-host-cdn.com/file.pdf" value={form.documentUrl} onChange={(e) => setForm({...form, documentUrl: e.target.value})} className={inputClass} />
-          </div>}
         </div>
 
         {/* Category */}

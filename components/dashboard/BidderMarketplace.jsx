@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useSession } from "next-auth/react";
 import {
   Package,
@@ -32,12 +31,7 @@ const CALLBACK_URL = process.env.NEXT_PUBLIC_PAYCHANGU_CALLBACK_URL;
  *  - Daily Sales tab → regular sold commodities, searchable across all auctioneers.
  *  - Properties tab  → land & buildings, searchable by location.
  */
-export default function BidderMarketplace({
-  initialTab = "daily-sales",
-  initialCategory = "",
-  initialQuery = "",
-  showTabSwitcher = true,
-}) {
+export default function BidderMarketplace({ initialTab = "daily-sales", initialCategory = "", initialQuery = "" }) {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
   const [activeTab, setActiveTab] = useState(["properties", "auctions"].includes(initialTab) ? initialTab : "daily-sales");
@@ -50,7 +44,6 @@ export default function BidderMarketplace({
   const [maxPrice, setMaxPrice] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [items, setItems] = useState([]);
-  const [selectedListing, setSelectedListing] = useState(null);
   const [categories, setCategories] = useState([]);
   const [auctioneers, setAuctioneers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -192,22 +185,11 @@ export default function BidderMarketplace({
       : `MK ${Number(value).toLocaleString()}`;
 
   const formatListingDate = (iso) => (iso ? `Listed ${formatDate(iso)}` : "");
-  const detailPrice = selectedListing
-    ? activeTab === "daily-sales"
-      ? selectedListing.price
-      : selectedListing.listingType === "LEASE"
-        ? selectedListing.monthlyRent
-        : selectedListing.askingPrice
-    : null;
-  const detailAttributes = Object.entries(selectedListing?.attributes || {})
-    .filter(([, value]) => value !== null && value !== undefined && value !== "");
-  const formatAttributeValue = (value) =>
-    Array.isArray(value) ? value.join(", ") : typeof value === "object" ? JSON.stringify(value) : String(value);
 
   return (
     <div className={`space-y-6 ${cart.length ? "pb-28 md:pb-24" : "pb-16 md:pb-6"}`}>
       {/* Hero banner */}
-      <div className={`bg-gradient-to-r from-[var(--color-secondary)] to-[var(--color-primary)] text-[var(--color-bg)] rounded-2xl p-5 sm:p-6 shadow-lg shadow-[var(--color-primary)]/10 relative overflow-hidden ${selectedListing ? "hidden" : ""}`}>
+      <div className="bg-gradient-to-r from-[var(--color-secondary)] to-[var(--color-primary)] text-[var(--color-bg)] rounded-2xl p-5 sm:p-6 shadow-lg shadow-[var(--color-primary)]/10 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -223,10 +205,10 @@ export default function BidderMarketplace({
             </h2>
             <p className="text-[11px] sm:text-xs text-[var(--color-bg)]/70 max-w-xl leading-relaxed">
               {activeTab === "daily-sales"
-                ? "Browse and buy available goods from the marketplace."
+                ? "Browse regular sold commodities — goods uploaded for quick daily sales by every auctioneer on the system."
                 : activeTab === "properties"
-                  ? "Search for properties by price, location, category, and sale or lease type."
-                  : "Browse scheduled and live auctions and place bids in the auction room."}
+                  ? "Explore land and buildings from all registered auctioneers. Filter by price, location, category, auctioneer, and sale or lease."
+                  : "Browse scheduled and live auctions. Sign in as a bidder to join and place bids."}
             </p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-5 py-3 shrink-0 self-start sm:self-center">
@@ -237,13 +219,9 @@ export default function BidderMarketplace({
       </div>
 
       {/* Tab switcher */}
-      {showTabSwitcher && (
-      <div className={`flex items-center gap-2 bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl p-1.5 w-fit ${selectedListing ? "hidden" : ""}`}>
+      <div className="flex items-center gap-2 bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl p-1.5 w-fit">
         <button
-          onClick={() => {
-            setSelectedListing(null);
-            setActiveTab("daily-sales");
-          }}
+          onClick={() => setActiveTab("daily-sales")}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
             activeTab === "daily-sales"
               ? "bg-[var(--color-secondary)] text-white shadow-sm"
@@ -253,10 +231,7 @@ export default function BidderMarketplace({
           <ShoppingBag className="w-3.5 h-3.5" /> Daily Sales
         </button>
         <button
-          onClick={() => {
-            setSelectedListing(null);
-            setActiveTab("properties");
-          }}
+          onClick={() => setActiveTab("properties")}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
             activeTab === "properties"
               ? "bg-[var(--color-secondary)] text-white shadow-sm"
@@ -266,10 +241,7 @@ export default function BidderMarketplace({
           <Home className="w-3.5 h-3.5" /> Properties
         </button>
         <button
-          onClick={() => {
-            setSelectedListing(null);
-            setActiveTab("auctions");
-          }}
+          onClick={() => setActiveTab("auctions")}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
             activeTab === "auctions"
               ? "bg-[var(--color-secondary)] text-white shadow-sm"
@@ -279,10 +251,9 @@ export default function BidderMarketplace({
           <Gavel className="w-3.5 h-3.5" /> Auctions
         </button>
       </div>
-      )}
 
       {/* Search and expandable filters */}
-      <div className={`space-y-3 ${selectedListing ? "hidden" : ""}`}>
+      <div className="space-y-3">
         <div className="flex gap-2">
           <div className="relative min-w-0 flex-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-muted)]" />
@@ -353,164 +324,7 @@ export default function BidderMarketplace({
       </div>
 
       {/* Results */}
-      {selectedListing && activeTab !== "auctions" ? (
-        <section
-          aria-labelledby="listing-details-title"
-          className="grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_320px]"
-        >
-          <div className="space-y-4">
-            <div className="relative h-[320px] overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-input)] shadow-sm sm:h-[440px]">
-              {selectedListing.imageUrl ? (
-                <Image
-                  src={selectedListing.imageUrl}
-                  alt={selectedListing.title}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center">
-                  {activeTab === "daily-sales" ? (
-                    <Package className="h-14 w-14 text-[var(--color-muted)] opacity-40" />
-                  ) : (
-                    <Home className="h-14 w-14 text-[var(--color-muted)] opacity-40" />
-                  )}
-                </div>
-              )}
-              <span className="absolute left-4 top-4 rounded-lg bg-[var(--color-card)] px-3 py-1.5 text-xs font-bold text-[var(--color-text)] shadow">
-                {activeTab === "daily-sales"
-                  ? selectedListing.stockCount > 0 ? "Available" : "Out of stock"
-                  : selectedListing.listingType === "LEASE" ? "For lease" : "For sale"}
-              </span>
-              <span className="absolute right-4 top-4 rounded-lg bg-[var(--color-card)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] shadow">
-                {selectedListing.category || (activeTab === "daily-sales" ? "Goods" : "Property")}
-              </span>
-            </div>
-
-            <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-sm sm:p-6">
-              <div className="mb-4 flex items-start gap-3">
-                <span className="rounded-xl bg-[var(--color-primary)]/10 p-2.5 text-[var(--color-primary)]">
-                  {activeTab === "daily-sales" ? <Package className="h-5 w-5" /> : <Home className="h-5 w-5" />}
-                </span>
-                <div>
-                  <h2 className="text-lg font-bold text-[var(--color-text)]">Description</h2>
-                  <p className="text-xs text-[var(--color-muted)]">Detailed information about this listing</p>
-                </div>
-              </div>
-              <p className="whitespace-pre-wrap text-sm leading-6 text-[var(--color-text)]">
-                {selectedListing.description || "No description provided."}
-              </p>
-              {detailAttributes.length > 0 && (
-                <dl className="mt-5 grid gap-3 border-t border-[var(--color-border)] pt-4 sm:grid-cols-2">
-                  {detailAttributes.map(([label, value]) => (
-                    <div key={label} className="min-w-0">
-                      <dt className="text-xs text-[var(--color-muted)]">{label}</dt>
-                      <dd className="break-words text-sm font-semibold text-[var(--color-text)]">
-                        {formatAttributeValue(value)}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              )}
-            </div>
-          </div>
-
-          <aside className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-lg sm:p-6 lg:sticky lg:top-4">
-            <h1 id="listing-details-title" className="text-xl font-extrabold leading-snug text-[var(--color-text)]">
-              {selectedListing.title}
-            </h1>
-            <div className="mt-4 rounded-2xl border border-[var(--color-primary)]/15 bg-[var(--color-primary)]/5 p-4 text-center">
-              <p className="text-xs text-[var(--color-muted)]">
-                {activeTab === "daily-sales" ? "Price" : selectedListing.listingType === "LEASE" ? "Rent per month" : "Price"}
-              </p>
-              <p className="mt-1 text-2xl font-extrabold text-[var(--color-text)]">{formatMoney(detailPrice)}</p>
-              {selectedListing.listingType === "LEASE" && (
-                <p className="mt-1 text-xs text-[var(--color-muted)]">
-                  Rent due day: {selectedListing.rentDueDay || "Not specified"}
-                </p>
-              )}
-            </div>
-
-            <dl className="mt-5 divide-y divide-[var(--color-border)] text-sm">
-              <div className="flex justify-between gap-4 py-3">
-                <dt className="text-[var(--color-muted)]">Listing ID</dt>
-                <dd className="text-right font-semibold text-[var(--color-text)]">
-                  {activeTab === "daily-sales" ? "DS" : "PR"}-{selectedListing.id}
-                </dd>
-              </div>
-              <div className="flex justify-between gap-4 py-3">
-                <dt className="text-[var(--color-muted)]">Category</dt>
-                <dd className="text-right font-semibold text-[var(--color-text)]">{selectedListing.category || "Other"}</dd>
-              </div>
-              <div className="flex justify-between gap-4 py-3">
-                <dt className="text-[var(--color-muted)]">Location</dt>
-                <dd className="text-right font-semibold text-[var(--color-text)]">{selectedListing.location || "Not specified"}</dd>
-              </div>
-              {activeTab === "properties" && (
-                <div className="flex justify-between gap-4 py-3">
-                  <dt className="text-[var(--color-muted)]">Client</dt>
-                  <dd className="text-right font-semibold text-[var(--color-text)]">{selectedListing.clientName || "Not specified"}</dd>
-                </div>
-              )}
-              <div className="flex justify-between gap-4 py-3">
-                <dt className="text-[var(--color-muted)]">Auctioneer</dt>
-                <dd className="text-right font-semibold text-[var(--color-text)]">{selectedListing.auctioneerName || "Auctioneer"}</dd>
-              </div>
-              <div className="flex justify-between gap-4 py-3">
-                <dt className="text-[var(--color-muted)]">Status</dt>
-                <dd className="text-right font-semibold text-[var(--color-text)]">
-                  {activeTab === "daily-sales"
-                    ? selectedListing.stockCount > 0 ? `Available · ${selectedListing.stockCount} in stock` : "Out of stock"
-                    : selectedListing.listingType === "LEASE" ? "Available for lease" : "Available for sale"}
-                </dd>
-              </div>
-              <div className="flex justify-between gap-4 py-3">
-                <dt className="text-[var(--color-muted)]">Listed</dt>
-                <dd className="text-right font-semibold text-[var(--color-text)]">{formatListingDate(selectedListing.createdAt)}</dd>
-              </div>
-            </dl>
-
-            {activeTab === "daily-sales" ? (
-              <button
-                type="button"
-                onClick={() => toggleCartItem(selectedListing)}
-                disabled={(selectedListing.stockCount ?? 0) < 1 || (cart.length >= 20 && !isInCart(selectedListing))}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                {isInCart(selectedListing) ? "Added to Cart" : "Add to Cart"}
-              </button>
-            ) : selectedListing.listingType === "LEASE" ? (
-              <button
-                type="button"
-                onClick={() => handlePurchase(selectedListing, "PROPERTY_RENT")}
-                disabled={purchasingId === selectedListing.id}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
-              >
-                <Tag className="h-4 w-4" />
-                {purchasingId === selectedListing.id ? "Starting..." : "Pay Rent"}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => handlePurchase(selectedListing, "PROPERTY")}
-                disabled={purchasingId === selectedListing.id}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
-              >
-                <Tag className="h-4 w-4" />
-                {purchasingId === selectedListing.id ? "Starting..." : "Buy Now"}
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setSelectedListing(null)}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm font-semibold text-[var(--color-text)] transition-colors hover:bg-[var(--color-input)]"
-            >
-              <span aria-hidden="true">←</span> Back to Listings
-            </button>
-          </aside>
-        </section>
-      ) : loading ? (
+      {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl p-4 animate-pulse">
@@ -544,22 +358,13 @@ export default function BidderMarketplace({
           {items.map((item) => (
             <div
               key={`${item.kind}-${item.id}`}
-              className="relative bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:border-[var(--color-primary)]/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[var(--color-primary)]/5"
+              className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:border-[var(--color-primary)]/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[var(--color-primary)]/5"
             >
-              <button
-                type="button"
-                onClick={() => setSelectedListing(item)}
-                disabled={activeTab === "auctions"}
-                aria-label={`View details for ${item.title}`}
-                className="absolute inset-0 z-10 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:pointer-events-none"
-              />
               <div className="relative h-44 w-full overflow-hidden">
                 {item.imageUrl ? (
-                  <Image
+                  <img
                     src={item.imageUrl}
                     alt={item.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                 ) : (
@@ -605,26 +410,17 @@ export default function BidderMarketplace({
                   </div>
                 )}
 
-                {activeTab === "daily-sales" ? (
-                  <div className="flex items-center gap-1 text-[10px] text-[var(--color-muted)]">
-                    <User className="w-3 h-3 text-[var(--color-primary)]" />
-                    Auctioneer: {item.auctioneerName}{item.location ? ` · ${item.location}` : ""}
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-1 text-[10px] text-[var(--color-muted)]">
-                      <User className="w-3 h-3 text-[var(--color-primary)]" />
-                      Client: {item.clientName || item.location || "N/A"}
-                    </div>
+                <div className="flex items-center gap-1 text-[10px] text-[var(--color-muted)]">
+                  <User className="w-3 h-3 text-[var(--color-primary)]" />
+                  Client: {item.clientName || item.location || "N/A"}
+                </div>
 
-                    <div className="flex items-center gap-1 text-[10px] text-[var(--color-muted)] mt-auto">
-                      <User className="w-3 h-3" />
-                      {item.auctioneerName}
-                    </div>
-                  </>
-                )}
+                <div className="flex items-center gap-1 text-[10px] text-[var(--color-muted)] mt-auto">
+                  <User className="w-3 h-3" />
+                  {item.auctioneerName}
+                </div>
 
-                <div className="relative z-20 flex items-end justify-between pt-2 border-t border-[var(--color-border)] mt-1">
+                <div className="flex items-end justify-between pt-2 border-t border-[var(--color-border)] mt-1">
                   <div>
                     <p className="text-[10px] text-[var(--color-muted)] mb-0.5">
                       {activeTab === "daily-sales"

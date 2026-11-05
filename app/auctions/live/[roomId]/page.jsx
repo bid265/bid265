@@ -293,11 +293,11 @@ export default function LiveRoomPage({ params }) {
   const attrEntries = Object.entries(auctionItem.asset?.attributes || {});
 
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden font-sans antialiased"
+    <div className="min-h-screen w-full flex flex-col font-sans antialiased"
          style={{ backgroundColor: "var(--color-bg)", color: "var(--color-text)" }}>
 
       {/* Header */}
-      <header className="flex items-center justify-between px-5 py-3 border-b flex-shrink-0"
+      <header className="sticky top-0 z-30 flex items-center justify-between px-5 py-3 border-b flex-shrink-0"
               style={{ backgroundColor: "rgba(11, 30, 38, 0.9)", borderColor: "var(--color-border)", backdropFilter: "blur(12px)" }}>
         <div className="flex items-center gap-3">
           <button onClick={handleLeaveRoom}
@@ -331,14 +331,14 @@ export default function LiveRoomPage({ params }) {
       </header>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 overflow-hidden">
+      <div className="flex-1 flex flex-col items-start lg:flex-row gap-4 p-4">
 
         {/* LEFT: Image + Details */}
-        <div className="flex-1 flex flex-col gap-4 min-w-0 overflow-hidden">
+        <div className="flex-1 flex flex-col gap-4 min-w-0 w-full">
 
           {/* Image */}
-          <div className="relative h-[30vh] min-h-[160px] max-h-[280px] rounded-2xl overflow-hidden border flex-shrink-0"
-               style={{ backgroundColor: "var(--color-card)", borderColor: "var(--color-border)" }}>
+          <div className="relative h-[55vh] min-h-[280px] max-h-[600px] rounded-2xl overflow-hidden border flex-shrink-0"
+               style={{ backgroundColor: "#0B1E26", borderColor: "var(--color-border)" }}>
             <div className="relative h-full w-full">
               <Image
                 src={primaryImage}
@@ -370,7 +370,7 @@ export default function LiveRoomPage({ params }) {
           </div>
 
           {/* Details - scrollable */}
-          <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-3 min-h-0">
+          <div className="space-y-3">
 
             <div className="rounded-xl p-5 border" style={{ backgroundColor: "var(--color-card)", borderColor: "var(--color-border)" }}>
               <p className="text-sm leading-relaxed" style={{ color: "var(--color-muted)" }}>
@@ -419,7 +419,7 @@ export default function LiveRoomPage({ params }) {
         </div>
 
         {/* RIGHT: Sidebar */}
-        <div className="w-full lg:w-[340px] flex flex-col gap-3 min-h-0 flex-shrink-0 overflow-y-auto custom-scrollbar">
+        <div className="w-full lg:w-[340px] flex flex-col gap-3 flex-shrink-0">
 
           {/* Highest Bid */}
           <div className="rounded-2xl p-5 border" style={{ backgroundColor: "var(--color-card)", borderColor: "var(--color-border)" }}>

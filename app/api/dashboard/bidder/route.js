@@ -181,7 +181,8 @@ export async function GET() {
     // ── 7. COMPUTE STATS ───────────────────────────────────────────────
     const totalBids = enrichedBids.length;
     const winningBids = enrichedBids.filter((b) => b.status === "WINNING");
-    const outbidCount = enrichedBids.filter((b) => b.status === "OUTBID").length;
+    const winningCount = enrichedBids.filter((b) => b.status === "WINNING" || b.status === "WON").length;
+    const outbidCount = enrichedBids.filter((b) => b.status === "OUTBID" || b.status === "LOST").length;
     const auctionsWon = enrichedBids.filter((b) => b.status === "WON").length;
     const totalSpent = Number(paymentTotals[0]?.spent || 0);
     const totalPayments = paymentTotals[0]?.total || 0;
@@ -194,7 +195,7 @@ export async function GET() {
     const dashboardData = {
       stats: {
         totalBids,
-        winningBids: winningBids.length,
+        winningBids: winningCount,
         outbidCount,
         auctionsWon,
         totalSpent,

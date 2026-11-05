@@ -31,7 +31,7 @@ export default function AuctioneerDashboard({ user, auctionItems: initialAuction
   ]);
 
   const [form, setForm] = useState({
-    title: "", description: "", clientName: "", documentUrl: "",
+    title: "", description: "", clientName: "",
     startingBid: "", reservePrice: "", entryFee: "", biddingDeposit: ""
   });
 
@@ -59,7 +59,6 @@ export default function AuctioneerDashboard({ user, auctionItems: initialAuction
       formData.append("title", form.title);
       formData.append("description", form.description);
       formData.append("clientName", form.clientName);
-      formData.append("documentUrl", form.documentUrl);
       formData.append("startingBid", form.startingBid);
       formData.append("reservePrice", form.reservePrice);
       formData.append("entryFee", form.entryFee);
@@ -76,7 +75,7 @@ export default function AuctioneerDashboard({ user, auctionItems: initialAuction
       const res = await createAssetAndAuction(formData);
       if (res.success) {
         alert(`🎉 Lot Registered Successfully! Added to database registry.`);
-        setForm({ title: "", description: "", clientName: "", documentUrl: "", startingBid: "", reservePrice: "", entryFee: "", biddingDeposit: "" });
+        setForm({ title: "", description: "", clientName: "", startingBid: "", reservePrice: "", entryFee: "", biddingDeposit: "" });
         setDynamicAttributes([{ key: "Condition", value: "Excellent" }]);
         setUploadedFile(null);
         e.target.reset(); 
@@ -285,10 +284,6 @@ export default function AuctioneerDashboard({ user, auctionItems: initialAuction
                 </span>
                 <input type="file" accept="image/*" onChange={(e) => setUploadedFile(e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
               </div>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Legal Document Link</label>
-              <input type="url" placeholder="https://your-host-cdn.com/file.pdf" value={form.documentUrl} onChange={(e) => setForm({...form, documentUrl: e.target.value})} className="w-full bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs rounded-xl focus:outline-none" />
             </div>
           </div>
 

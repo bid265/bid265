@@ -1,0 +1,1 @@
+ALTER TABLE "auction_settlements" ADD COLUMN "resultStatus" varchar(32) DEFAULT 'FINALIZED' NOT NULL;
