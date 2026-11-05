@@ -267,8 +267,8 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
               <div>
-                <label className="block text-[10px] font-bold text-[var(--color-muted)] uppercase mb-1">Product Viewing Date &amp; Time</label>
-                <input type="datetime-local" required value={form.viewingDate} onChange={(e) => setForm({...form, viewingDate: e.target.value})} className={inputClass} />
+                <label className="block text-[10px] font-bold text-[var(--color-muted)] uppercase mb-1">Product Viewing Date</label>
+                <input type="date" required value={form.viewingDate} onChange={(e) => setForm({...form, viewingDate: e.target.value})} className={inputClass} />
                 <p className="mt-1 text-[10px] text-[var(--color-muted)]">When bidders can view the item before the auction starts.</p>
               </div>
               <div>
