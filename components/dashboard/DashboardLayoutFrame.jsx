@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useTransition } from "react";
 import { signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "@/app/providers";
@@ -50,6 +50,14 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
   const [activeTab, setActiveTab] = useState(
     requestedTab === "manage-auctions" ? "live-auctions" : requestedTab || (user?.role === "ADMIN" ? "dashboard" : "live-auctions")
   );
+  const [, startTabTransition] = useTransition();
+  useEffect(() => {
+    if (requestedTab) {
+      startTabTransition(() => {
+        setActiveTab(requestedTab === "manage-auctions" ? "live-auctions" : requestedTab);
+      });
+    }
+  }, [requestedTab, startTabTransition]);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [accessPaymentMessage, setAccessPaymentMessage] = useState("");
   const [adminNotice, setAdminNotice] = useState("");
@@ -523,7 +531,7 @@ export default function DashboardLayoutFrame({ user, serializedAuctionItems, isA
                     </section>
                   </div>
                 ) : (
-                  <BidderDashboard />
+                  <BidderDashboard onNavigate={setActiveTab} />
                 )}
               </div>
             )}

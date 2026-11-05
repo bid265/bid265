@@ -19,7 +19,7 @@ import {
   Zap,
 } from "lucide-react";
 
-export default function BidderDashboard() {
+export default function BidderDashboard({ onNavigate }) {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -161,7 +161,7 @@ export default function BidderDashboard() {
             View your bidding activity, current wins, and upcoming auctions.
           </p>
         </div>
-        <Link href="/marketplace?tab=auctions">
+        <Link href="/dashboard?tab=live-auctions" onClick={() => onNavigate("live-auctions")}>
           <button className="inline-flex items-center gap-2 bg-[var(--color-secondary)] hover:bg-[var(--color-primary)] text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all hover:shadow-lg hover:shadow-[var(--color-primary)]/20">
             <Zap className="w-4 h-4" />
             Browse Auctions
@@ -247,7 +247,7 @@ export default function BidderDashboard() {
                   Your latest bidding activity
                 </p>
               </div>
-              <Link href="/dashboard?tab=my-bids">
+              <Link href="/dashboard?tab=my-bids" onClick={() => onNavigate("my-bids")}>
                 <button className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-primary)] hover:underline">
                   View All
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -387,7 +387,7 @@ export default function BidderDashboard() {
                     <p className="text-xs text-[var(--color-muted)]">Auctions starting soon you may be interested in</p>
                   </div>
                 </div>
-                <Link href="/marketplace?tab=auctions">
+                <Link href="/dashboard?tab=live-auctions" onClick={() => onNavigate("live-auctions")}>
                   <button className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-primary)] hover:underline">
                     View All
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -453,7 +453,7 @@ export default function BidderDashboard() {
                   {stats.totalRegistrations} registered auction{stats.totalRegistrations === 1 ? "" : "s"} · {stats.activeRegistrations} active
                 </p>
               </div>
-              <Link href="/marketplace?tab=auctions" className="text-xs font-semibold text-[var(--color-primary)] hover:underline">
+              <Link href="/dashboard?tab=live-auctions" onClick={() => onNavigate("live-auctions")} className="text-xs font-semibold text-[var(--color-primary)] hover:underline">
                 Browse auctions
               </Link>
             </div>
@@ -493,12 +493,12 @@ export default function BidderDashboard() {
             <h2 className="text-sm font-bold text-[var(--color-text)] mb-4 uppercase tracking-wider">Quick Actions</h2>
             <div className="space-y-2">
               {[
-                { label: "Browse Auctions", href: "/marketplace?tab=auctions", icon: Gavel, color: "text-blue-500", bg: "bg-blue-500/10" },
-                { label: "My Bids", href: "/dashboard?tab=my-bids", icon: Activity, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-                { label: "My Receipts", href: "/dashboard?tab=payments", icon: Receipt, color: "text-violet-500", bg: "bg-violet-500/10" },
+                { label: "Browse Auctions", href: "/dashboard?tab=live-auctions", tab: "live-auctions", icon: Gavel, color: "text-blue-500", bg: "bg-blue-500/10" },
+                { label: "My Bids", href: "/dashboard?tab=my-bids", tab: "my-bids", icon: Activity, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+                { label: "My Receipts", href: "/dashboard?tab=payments", tab: "payments", icon: Receipt, color: "text-violet-500", bg: "bg-violet-500/10" },
                 { label: "My Registrations", href: "#registered-auctions", icon: Shield, color: "text-amber-500", bg: "bg-amber-500/10" },
               ].map((action) => (
-                <Link key={action.label} href={action.href}>
+                <Link key={action.label} href={action.href} onClick={action.tab ? () => onNavigate(action.tab) : undefined}>
                   <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--color-input)] transition-all group cursor-pointer">
                     <div className={`p-2 rounded-lg ${action.bg} group-hover:scale-110 transition-transform`}>
                       <action.icon className={`w-4 h-4 ${action.color}`} />
