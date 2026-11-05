@@ -10,7 +10,7 @@ import {
   dailySales,
   users,
 } from "@/lib/db/schema";
-import { count, desc, inArray } from "drizzle-orm";
+import { count, desc, eq, inArray } from "drizzle-orm";
 
 /**
  * GET /api/listings
