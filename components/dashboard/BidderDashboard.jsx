@@ -15,7 +15,6 @@ import {
   Activity,
   ChevronRight,
   AlertCircle,
-  Shield,
   Zap,
 } from "lucide-react";
 
@@ -147,7 +146,6 @@ export default function BidderDashboard({ onNavigate }) {
     recentBids,
     winningBids,
     upcomingAuctions,
-    registeredAuctions,
   } = dashboard;
 
   // ── MAIN DASHBOARD ────────────────────────────────────────────────
@@ -445,45 +443,6 @@ export default function BidderDashboard({ onNavigate }) {
             </div>
           )}
 
-          <div id="registered-auctions" className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-sm">
-            <div className="mb-5 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-bold text-[var(--color-text)]">My Registrations</h2>
-                <p className="mt-0.5 text-xs text-[var(--color-muted)]">
-                  {stats.totalRegistrations} registered auction{stats.totalRegistrations === 1 ? "" : "s"} · {stats.activeRegistrations} active
-                </p>
-              </div>
-              <Link href="/dashboard?tab=live-auctions" onClick={() => onNavigate("live-auctions")} className="text-xs font-semibold text-[var(--color-primary)] hover:underline">
-                Browse auctions
-              </Link>
-            </div>
-            {registeredAuctions.length ? (
-              <div className="divide-y divide-[var(--color-border)]">
-                {registeredAuctions.map((registration) => (
-                  <div key={registration.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-input)]">
-                        {registration.auctionItem.images?.[0]?.url
-                          ? <img src={registration.auctionItem.images[0].url} alt="" className="h-full w-full object-cover" loading="lazy" />
-                          : <Package className="h-5 w-5 text-[var(--color-muted)]" />}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-[var(--color-text)]">{registration.auctionItem.asset.title}</p>
-                        <p className="text-xs text-[var(--color-muted)]">{registration.auctionItem.asset.category} · {registration.status}</p>
-                      </div>
-                    </div>
-                    <Link href={getAuctionHref(registration.auctionItem)} className="shrink-0 text-xs font-semibold text-[var(--color-primary)] hover:underline">
-                      View auction
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="rounded-xl border border-dashed border-[var(--color-border)] p-6 text-center text-sm text-[var(--color-muted)]">
-                You have not registered for an auction yet.
-              </p>
-            )}
-          </div>
         </div>
 
         {/* Right Column - Sidebar */}
@@ -496,7 +455,6 @@ export default function BidderDashboard({ onNavigate }) {
                 { label: "Browse Auctions", href: "/dashboard?tab=live-auctions", tab: "live-auctions", icon: Gavel, color: "text-blue-500", bg: "bg-blue-500/10" },
                 { label: "My Bids", href: "/dashboard?tab=my-bids", tab: "my-bids", icon: Activity, color: "text-emerald-500", bg: "bg-emerald-500/10" },
                 { label: "My Receipts", href: "/dashboard?tab=payments", tab: "payments", icon: Receipt, color: "text-violet-500", bg: "bg-violet-500/10" },
-                { label: "My Registrations", href: "#registered-auctions", icon: Shield, color: "text-amber-500", bg: "bg-amber-500/10" },
               ].map((action) => (
                 <Link key={action.label} href={action.href} onClick={action.tab ? () => onNavigate(action.tab) : undefined}>
                   <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--color-input)] transition-all group cursor-pointer">
