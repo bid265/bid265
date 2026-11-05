@@ -32,7 +32,12 @@ const CALLBACK_URL = process.env.NEXT_PUBLIC_PAYCHANGU_CALLBACK_URL;
  *  - Daily Sales tab → regular sold commodities, searchable across all auctioneers.
  *  - Properties tab  → land & buildings, searchable by location.
  */
-export default function BidderMarketplace({ initialTab = "daily-sales", initialCategory = "", initialQuery = "" }) {
+export default function BidderMarketplace({
+  initialTab = "daily-sales",
+  initialCategory = "",
+  initialQuery = "",
+  showTabSwitcher = true,
+}) {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
   const [activeTab, setActiveTab] = useState(["properties", "auctions"].includes(initialTab) ? initialTab : "daily-sales");
@@ -219,39 +224,40 @@ export default function BidderMarketplace({ initialTab = "daily-sales", initialC
         </div>
       </div>
 
-      {/* Tab switcher */}
-      <div className="flex items-center gap-2 bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl p-1.5 w-fit">
-        <button
-          onClick={() => setActiveTab("daily-sales")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-            activeTab === "daily-sales"
-              ? "bg-[var(--color-secondary)] text-white shadow-sm"
-              : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
-          }`}
-        >
-          <ShoppingBag className="w-3.5 h-3.5" /> Daily Sales
-        </button>
-        <button
-          onClick={() => setActiveTab("properties")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-            activeTab === "properties"
-              ? "bg-[var(--color-secondary)] text-white shadow-sm"
-              : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
-          }`}
-        >
-          <Home className="w-3.5 h-3.5" /> Properties
-        </button>
-        <button
-          onClick={() => setActiveTab("auctions")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-            activeTab === "auctions"
-              ? "bg-[var(--color-secondary)] text-white shadow-sm"
-              : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
-          }`}
-        >
-          <Gavel className="w-3.5 h-3.5" /> Auctions
-        </button>
-      </div>
+      {showTabSwitcher && (
+        <div className="flex items-center gap-2 bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl p-1.5 w-fit">
+          <button
+            onClick={() => setActiveTab("daily-sales")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === "daily-sales"
+                ? "bg-[var(--color-secondary)] text-white shadow-sm"
+                : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
+            }`}
+          >
+            <ShoppingBag className="w-3.5 h-3.5" /> Daily Sales
+          </button>
+          <button
+            onClick={() => setActiveTab("properties")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === "properties"
+                ? "bg-[var(--color-secondary)] text-white shadow-sm"
+                : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
+            }`}
+          >
+            <Home className="w-3.5 h-3.5" /> Properties
+          </button>
+          <button
+            onClick={() => setActiveTab("auctions")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === "auctions"
+                ? "bg-[var(--color-secondary)] text-white shadow-sm"
+                : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
+            }`}
+          >
+            <Gavel className="w-3.5 h-3.5" /> Auctions
+          </button>
+        </div>
+      )}
 
       {/* Search and expandable filters */}
       <div className="space-y-3">
