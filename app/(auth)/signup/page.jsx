@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Mail, Lock, User, Phone, Gavel } from "lucide-react";
+import { Mail, Lock, User, Phone } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
@@ -90,11 +90,6 @@ export default function SignUpPage() {
             <span>{error}</span>
           </div>
         )}
-
-        <div className="mb-5 flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-input)] px-3 py-2.5 text-xs text-[var(--color-muted)]">
-          <Gavel className="h-4 w-4 text-[var(--color-primary)]" />
-          Public registration is for bidders. Auctioneer accounts are created by an administrator after verification.
-        </div>
 
         {/* Input Form */}
         <form className="space-y-4" onSubmit={handleCredentialsSubmit}>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
@@ -21,6 +22,7 @@ import {
 import { formatDate } from "@/lib/payments";
 import { fetchUserProfile, initiatePayment, parseName } from "@/lib/payments";
 import { formatDateOnly } from "@/lib/dateFormatting";
+import { useDailySaleCart } from "@/lib/marketplaceCart";
 import { startDailySaleCartPurchase, startListingPurchase } from "@/app/actions/listingPurchase";
 
 const CALLBACK_URL = process.env.NEXT_PUBLIC_PAYCHANGU_CALLBACK_URL;
@@ -57,16 +59,19 @@ export default function BidderMarketplace({
   const [purchaseError, setPurchaseError] = useState("");
   const [authPrompt, setAuthPrompt] = useState(false);
   const [purchasingId, setPurchasingId] = useState(null);
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useDailySaleCart();
   const [cartPurchasing, setCartPurchasing] = useState(false);
 
   const cartTotal = cart.reduce((total, item) => total + Number(item.price || 0), 0);
   const isInCart = (item) => cart.some((cartItem) => cartItem.id === item.id);
 
   const toggleCartItem = (item) => {
-    setCart((current) => current.some((cartItem) => cartItem.id === item.id)
-      ? current.filter((cartItem) => cartItem.id !== item.id)
-      : [...current, { id: item.id, title: item.title, price: Number(item.price) }]);
+    setCart((current) => {
+      const next = current.some((cartItem) => cartItem.id === item.id)
+        ? current.filter((cartItem) => cartItem.id !== item.id)
+        : [...current, { id: item.id, title: item.title, price: Number(item.price) }];
+      return next;
+    });
   };
 
   const handleCartCheckout = async () => {
@@ -365,8 +370,17 @@ export default function BidderMarketplace({
           {items.map((item) => (
             <div
               key={`${item.kind}-${item.id}`}
-              className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:border-[var(--color-primary)]/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[var(--color-primary)]/5"
+              className="relative bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:border-[var(--color-primary)]/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[var(--color-primary)]/5"
             >
+              {activeTab !== "auctions" && (
+                <Link
+                  href={`/item/${item.id}?tab=${activeTab}`}
+                  aria-label={`View details for ${item.title}`}
+                  className="absolute inset-0 z-10 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
+                >
+                  <span className="sr-only">View listing details</span>
+                </Link>
+              )}
               <div className="relative h-44 w-full overflow-hidden">
                 {item.imageUrl ? (
                   <img
@@ -465,19 +479,19 @@ export default function BidderMarketplace({
                           : `/login?callbackUrl=${encodeURIComponent(destination)}`);
                       }}
                       disabled={sessionStatus === "loading"}
-                      className="flex items-center gap-1 rounded-xl bg-[var(--color-primary)] px-3 py-2 text-[11px] font-bold text-white"
+                      className="relative z-20 flex items-center gap-1 rounded-xl bg-[var(--color-primary)] px-3 py-2 text-[11px] font-bold text-white"
                     >
                       <Gavel className="h-3.5 w-3.5" /> {session?.user ? "View and bid" : "Sign in to bid"}
                     </button>
                   ) : activeTab === "properties" && item.listingType === "AUCTION" && item.auctionItemId ? (
                     <button
                       onClick={() => router.push("/dashboard?tab=live-auctions")}
-                      className="flex items-center gap-1 px-3 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white rounded-xl text-[11px] font-bold transition-all active:scale-95"
+                      className="relative z-20 flex items-center gap-1 px-3 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white rounded-xl text-[11px] font-bold transition-all active:scale-95"
                     >
                       <Gavel className="w-3.5 h-3.5" /> Bid
                     </button>
                   ) : activeTab === "daily-sales" || (activeTab === "properties" && item.listingType === "SALE") ? (
-                    <div className="flex items-center gap-1.5">
+                    <div className="relative z-20 flex items-center gap-1.5">
                       {activeTab === "daily-sales" && (
                         <button
                           type="button"
@@ -501,7 +515,7 @@ export default function BidderMarketplace({
                     <button
                       onClick={() => handlePurchase(item, "PROPERTY_RENT")}
                       disabled={purchasingId === item.id}
-                      className="flex items-center gap-1 px-3 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white rounded-xl text-[11px] font-bold disabled:opacity-50"
+                      className="relative z-20 flex items-center gap-1 px-3 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white rounded-xl text-[11px] font-bold disabled:opacity-50"
                     >
                       <Tag className="w-3.5 h-3.5" /> {purchasingId === item.id ? "Starting..." : "Pay Rent"}
                     </button>

@@ -17,6 +17,11 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const requestedTab = searchParams.get("tab");
     const tab = ["properties", "auctions"].includes(requestedTab) ? requestedTab : "daily-sales";
+    const listingIdParam = searchParams.get("id");
+    const listingId = listingIdParam === null ? null : Number(listingIdParam);
+    if (listingId !== null && (!Number.isSafeInteger(listingId) || listingId <= 0)) {
+      return NextResponse.json({ error: "Listing ID must be a positive integer." }, { status: 400 });
+    }
     const q = (searchParams.get("q") || "").trim();
     const locationFilter = (searchParams.get("location") || "").trim();
     const categoryFilter = (searchParams.get("category") || "").trim();
@@ -98,7 +103,10 @@ export async function GET(request) {
 
     if (tab === "daily-sales") {
       const dailySaleRows = await db.query.dailySales.findMany({
-        where: eq(dailySales.isAvailable, true),
+        where: and(
+          eq(dailySales.isAvailable, true),
+          ...(listingId === null ? [] : [eq(dailySales.id, listingId)]),
+        ),
         with: {
           asset: {
             with: {
@@ -169,6 +177,7 @@ export async function GET(request) {
         eq(assets.isSold, false),
         eq(assets.salesType, "PROPERTY"),
         inArray(assets.listingType, ["SALE", "LEASE"]),
+        ...(listingId === null ? [] : [eq(assets.id, listingId)]),
         ...(searchFilter ? [searchFilter] : []),
         ...(locationFilter ? [ilike(assets.location, `%${locationFilter}%`)] : []),
       ),
