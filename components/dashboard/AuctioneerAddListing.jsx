@@ -149,7 +149,7 @@ export default function AuctioneerAddListing({ initialMode = "property" }) {
       </div>
 
       <div className="p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={`grid grid-cols-1 gap-4 ${mode !== "daily-sale" ? "md:grid-cols-2" : ""}`}>
           <div>
             <label className="block text-[10px] font-bold text-[var(--color-muted)] uppercase mb-1">
               {mode === "daily-sale" ? "Item Name / Title" : "Asset Name / Title"}
