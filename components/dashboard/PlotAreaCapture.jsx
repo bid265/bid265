@@ -5,10 +5,11 @@ import { Crosshair, Loader2, MapPinned, RotateCcw, Trash2 } from "lucide-react";
 import { formatArea, polygonAreaSqM, polygonPerimeterM } from "@/lib/geo";
 
 const GOOD_ACCURACY_M = 15;
+const MIN_PLOT_CORNERS = 4;
 
 /**
  * Captures the dimensions of a plot with the device GPS.
- * Stand at each corner of the plot and tap "Add corner point"; with three or more points the
+ * Stand at each corner of the plot and tap "Add corner point"; with four or more points the
  * enclosed area and perimeter are calculated and handed to the listing form via onChange.
  */
 export default function PlotAreaCapture({ onChange }) {
@@ -17,13 +18,13 @@ export default function PlotAreaCapture({ onChange }) {
   const [error, setError] = useState("");
 
   const metrics = useMemo(() => {
-    if (points.length < 3) return null;
+    if (points.length < MIN_PLOT_CORNERS) return null;
     return { areaSqM: polygonAreaSqM(points), perimeterM: polygonPerimeterM(points) };
   }, [points]);
 
   const publish = (nextPoints) => {
     setPoints(nextPoints);
-    if (nextPoints.length < 3) {
+    if (nextPoints.length < MIN_PLOT_CORNERS) {
       onChange?.(null);
       return;
     }
@@ -90,7 +91,7 @@ export default function PlotAreaCapture({ onChange }) {
       </div>
 
       <p className="text-[11px] leading-relaxed text-[var(--color-muted)]">
-        Stand at each corner of the plot, in order around its boundary, and tap <strong>Add corner point</strong>. Capture at least 3 corners to calculate the area.
+        Stand at each corner of the plot, in order around its boundary, and tap <strong>Add corner point</strong>. Capture at least 4 corners to calculate the area.
       </p>
 
       <div className="flex flex-wrap gap-2">
@@ -111,7 +112,7 @@ export default function PlotAreaCapture({ onChange }) {
       {points.length > 0 && (
         <div className="grid gap-3 sm:grid-cols-[120px_1fr]">
           <svg viewBox="0 0 120 120" className="h-28 w-28 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)]" aria-label="Captured plot boundary">
-            {preview && (points.length >= 3
+            {preview && (points.length >= MIN_PLOT_CORNERS
               ? <polygon points={preview.join(" ")} fill="var(--color-primary)" fillOpacity="0.2" stroke="var(--color-primary)" strokeWidth="1.5" />
               : <polyline points={preview.join(" ")} fill="none" stroke="var(--color-primary)" strokeWidth="1.5" />)}
             {(preview || ["10,110"]).map((pt, index) => {
@@ -133,7 +134,7 @@ export default function PlotAreaCapture({ onChange }) {
           <p>Perimeter: {Math.round(metrics.perimeterM).toLocaleString("en-US")} m. These details are saved with the listing.</p>
           {worstAccuracy > GOOD_ACCURACY_M && <p className="mt-1 text-amber-400">GPS accuracy was up to ±{Math.round(worstAccuracy)} m, so the result is approximate. Re-capture in open sky for a better reading.</p>}
         </div>
-      ) : points.length > 0 && <p className="text-[11px] text-[var(--color-muted)]">Add {3 - points.length} more corner point{3 - points.length === 1 ? "" : "s"} to calculate the area.</p>}
+      ) : points.length > 0 && <p className="text-[11px] text-[var(--color-muted)]">Add {MIN_PLOT_CORNERS - points.length} more corner point{MIN_PLOT_CORNERS - points.length === 1 ? "" : "s"} to calculate the area.</p>}
     </div>
   );
 }

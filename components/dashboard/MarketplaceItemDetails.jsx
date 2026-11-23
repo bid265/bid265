@@ -21,7 +21,7 @@ import { useDailySaleCart } from "@/lib/marketplaceCart";
 
 const CALLBACK_URL = process.env.NEXT_PUBLIC_PAYCHANGU_CALLBACK_URL;
 
-export default function MarketplaceItemDetails({ id, tab }) {
+export default function MarketplaceItemDetails({ id, tab, onBack }) {
   const router = useRouter();
   const [item, setItem] = useState(null);
   const [cart, setCart] = useDailySaleCart();
@@ -166,9 +166,15 @@ export default function MarketplaceItemDetails({ id, tab }) {
       <section className="mx-auto max-w-xl rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-8 text-center">
         <h1 className="text-xl font-bold">Listing unavailable</h1>
         <p className="mt-2 text-sm text-[var(--color-muted)]">{error || "This listing is no longer available."}</p>
-        <Link href={listingsHref} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-bold text-white">
-          <ArrowLeft className="h-4 w-4" /> Back to Listings
-        </Link>
+        {onBack ? (
+          <button type="button" onClick={onBack} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-bold text-white">
+            <ArrowLeft className="h-4 w-4" /> Back to Listings
+          </button>
+        ) : (
+          <Link href={listingsHref} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-bold text-white">
+            <ArrowLeft className="h-4 w-4" /> Back to Listings
+          </Link>
+        )}
       </section>
     );
   }
@@ -181,9 +187,15 @@ export default function MarketplaceItemDetails({ id, tab }) {
 
   return (
     <div className="space-y-6">
-      <Link href={listingsHref} className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-muted)] hover:text-[var(--color-primary)]">
-        <ArrowLeft className="h-4 w-4" /> Back to Listings
-      </Link>
+      {onBack ? (
+        <button type="button" onClick={onBack} className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-muted)] hover:text-[var(--color-primary)]">
+          <ArrowLeft className="h-4 w-4" /> Back to Listings
+        </button>
+      ) : (
+        <Link href={listingsHref} className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-muted)] hover:text-[var(--color-primary)]">
+          <ArrowLeft className="h-4 w-4" /> Back to Listings
+        </Link>
+      )}
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
         <div className="space-y-4">
@@ -293,12 +305,6 @@ export default function MarketplaceItemDetails({ id, tab }) {
           )}
           {purchaseError && <p className="mt-3 text-sm text-red-400" role="alert">{purchaseError}</p>}
         </aside>
-      </div>
-
-      <div className="flex justify-center">
-        <Link href={listingsHref} className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-border)] px-5 py-3 text-sm font-semibold text-[var(--color-muted)] hover:text-[var(--color-text)]">
-          <ArrowLeft className="h-4 w-4" /> Back to Listings
-        </Link>
       </div>
 
       {authPrompt && (

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
@@ -23,6 +22,7 @@ import { formatDate } from "@/lib/payments";
 import { fetchUserProfile, initiatePayment, parseName } from "@/lib/payments";
 import { formatDateOnly } from "@/lib/dateFormatting";
 import { useDailySaleCart } from "@/lib/marketplaceCart";
+import MarketplaceItemDetails from "@/components/dashboard/MarketplaceItemDetails";
 import { startDailySaleCartPurchase, startListingPurchase } from "@/app/actions/listingPurchase";
 
 const CALLBACK_URL = process.env.NEXT_PUBLIC_PAYCHANGU_CALLBACK_URL;
@@ -61,6 +61,7 @@ export default function BidderMarketplace({
   const [purchasingId, setPurchasingId] = useState(null);
   const [cart, setCart] = useDailySaleCart();
   const [cartPurchasing, setCartPurchasing] = useState(false);
+  const [selectedListing, setSelectedListing] = useState(null);
 
   const cartTotal = cart.reduce((total, item) => total + Number(item.price || 0), 0);
   const isInCart = (item) => cart.some((cartItem) => cartItem.id === item.id);
@@ -199,6 +200,15 @@ export default function BidderMarketplace({
 
   return (
     <div className={`space-y-6 ${cart.length ? "pb-28 md:pb-24" : "pb-16 md:pb-6"}`}>
+      {selectedListing ? (
+        <MarketplaceItemDetails
+          key={`${selectedListing.tab}-${selectedListing.id}`}
+          id={selectedListing.id}
+          tab={selectedListing.tab}
+          onBack={() => setSelectedListing(null)}
+        />
+      ) : (
+        <>
       {/* Hero banner */}
       <div className="bg-gradient-to-r from-[var(--color-secondary)] to-[var(--color-primary)] text-[var(--color-bg)] rounded-2xl p-5 sm:p-6 shadow-lg shadow-[var(--color-primary)]/10 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -373,13 +383,14 @@ export default function BidderMarketplace({
               className="relative bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:border-[var(--color-primary)]/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[var(--color-primary)]/5"
             >
               {activeTab !== "auctions" && (
-                <Link
-                  href={`/item/${item.id}?tab=${activeTab}`}
+                <button
+                  type="button"
+                  onClick={() => setSelectedListing({ id: item.id, tab: activeTab })}
                   aria-label={`View details for ${item.title}`}
-                  className="absolute inset-0 z-10 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
+                  className="absolute inset-0 z-10 rounded-2xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
                 >
                   <span className="sr-only">View listing details</span>
-                </Link>
+                </button>
               )}
               <div className="relative h-44 w-full overflow-hidden">
                 {item.imageUrl ? (
@@ -525,6 +536,8 @@ export default function BidderMarketplace({
             </div>
           ))}
         </div>
+      )}
+        </>
       )}
       {purchaseError && <p className="text-sm text-red-400" role="alert">{purchaseError}</p>}
       {activeTab === "daily-sales" && cart.length > 0 && (
