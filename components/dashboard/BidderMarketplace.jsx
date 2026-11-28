@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
@@ -24,6 +24,10 @@ import { formatDateOnly } from "@/lib/dateFormatting";
 import { useDailySaleCart } from "@/lib/marketplaceCart";
 import MarketplaceItemDetails from "@/components/dashboard/MarketplaceItemDetails";
 import { startDailySaleCartPurchase, startListingPurchase } from "@/app/actions/listingPurchase";
+import {
+  savePendingMarketplacePurchase,
+  takePendingMarketplacePurchase,
+} from "@/lib/marketplacePurchaseIntent";
 
 const CALLBACK_URL = process.env.NEXT_PUBLIC_PAYCHANGU_CALLBACK_URL;
 
@@ -58,10 +62,12 @@ export default function BidderMarketplace({
   const [error, setError] = useState(null);
   const [purchaseError, setPurchaseError] = useState("");
   const [authPrompt, setAuthPrompt] = useState(false);
+  const [pendingPurchase, setPendingPurchase] = useState(null);
   const [purchasingId, setPurchasingId] = useState(null);
   const [cart, setCart] = useDailySaleCart();
   const [cartPurchasing, setCartPurchasing] = useState(false);
   const [selectedListing, setSelectedListing] = useState(null);
+  const resumedPurchase = useRef(false);
 
   const cartTotal = cart.reduce((total, item) => total + Number(item.price || 0), 0);
   const isInCart = (item) => cart.some((cartItem) => cartItem.id === item.id);
@@ -75,11 +81,11 @@ export default function BidderMarketplace({
     });
   };
 
-  const handleCartCheckout = async () => {
+  const handleCartCheckout = useCallback(async (listingIds = cart.map((item) => item.id)) => {
     setCartPurchasing(true);
     setPurchaseError("");
     try {
-      const purchase = await startDailySaleCartPurchase(cart.map((item) => item.id));
+      const purchase = await startDailySaleCartPurchase(listingIds);
       if (!purchase.success) throw new Error(purchase.error);
       const profile = await fetchUserProfile();
       const { firstName, lastName } = parseName(profile.name || "");
@@ -103,19 +109,20 @@ export default function BidderMarketplace({
     } catch (purchaseFailure) {
       const message = purchaseFailure.message || "Could not start purchase.";
       if (message.includes("signed-in bidders")) {
+        setPendingPurchase({ type: "cart", listingIds });
         setAuthPrompt(true);
       } else {
         setPurchaseError(message);
       }
       setCartPurchasing(false);
     }
-  };
+  }, [cart]);
 
-  const handlePurchase = async (item, kind) => {
-    setPurchasingId(item.id);
+  const handlePurchase = useCallback(async (listingId, kind) => {
+    setPurchasingId(listingId);
     setPurchaseError("");
     try {
-      const purchase = await startListingPurchase(kind, item.id);
+      const purchase = await startListingPurchase(kind, listingId);
       if (!purchase.success) throw new Error(purchase.error);
       const profile = await fetchUserProfile();
       const { firstName, lastName } = parseName(profile.name || "");
@@ -139,13 +146,30 @@ export default function BidderMarketplace({
     } catch (purchaseFailure) {
       const message = purchaseFailure.message || "Could not start purchase.";
       if (message.includes("signed-in bidders")) {
+        setPendingPurchase({ type: "listing", listingId, kind });
         setAuthPrompt(true);
       } else {
         setPurchaseError(message);
       }
       setPurchasingId(null);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (sessionStatus === "loading" || resumedPurchase.current) return;
+
+    const intent = takePendingMarketplacePurchase();
+    if (!intent) return;
+    resumedPurchase.current = true;
+
+    queueMicrotask(() => {
+      if (intent.type === "listing") {
+        void handlePurchase(intent.listingId, intent.kind);
+      } else {
+        void handleCartCheckout(intent.listingIds);
+      }
+    });
+  }, [sessionStatus, handlePurchase, handleCartCheckout]);
 
   useEffect(() => {
     let cancelled = false;
@@ -515,7 +539,7 @@ export default function BidderMarketplace({
                         </button>
                       )}
                       <button
-                        onClick={() => handlePurchase(item, activeTab === "daily-sales" ? "DAILY_SALE" : "PROPERTY")}
+                        onClick={() => handlePurchase(item.id, activeTab === "daily-sales" ? "DAILY_SALE" : "PROPERTY")}
                         disabled={purchasingId === item.id}
                         className="flex items-center gap-1 px-2.5 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white rounded-xl text-[11px] font-bold disabled:opacity-50"
                       >
@@ -524,7 +548,7 @@ export default function BidderMarketplace({
                     </div>
                   ) : activeTab === "properties" && item.listingType === "LEASE" ? (
                     <button
-                      onClick={() => handlePurchase(item, "PROPERTY_RENT")}
+                      onClick={() => handlePurchase(item.id, "PROPERTY_RENT")}
                       disabled={purchasingId === item.id}
                       className="relative z-20 flex items-center gap-1 px-3 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white rounded-xl text-[11px] font-bold disabled:opacity-50"
                     >
@@ -566,8 +590,8 @@ export default function BidderMarketplace({
             <p className="text-sm text-[var(--color-muted)]">Create a bidder account or sign in before purchasing this listing.</p>
             <div className="flex gap-3">
               <button type="button" onClick={() => setAuthPrompt(false)} className="flex-1 rounded-xl border border-[var(--color-border)] px-3 py-2 text-sm font-semibold">Cancel</button>
-              <button type="button" onClick={() => router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`)} className="flex-1 rounded-xl bg-[var(--color-primary)] px-3 py-2 text-sm font-bold text-white">Sign in</button>
-              <button type="button" onClick={() => router.push(`/signup?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`)} className="flex-1 rounded-xl bg-[var(--color-secondary)] px-3 py-2 text-sm font-bold text-white">Register</button>
+              <button type="button" onClick={() => { if (pendingPurchase) savePendingMarketplacePurchase(pendingPurchase); router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`); }} className="flex-1 rounded-xl bg-[var(--color-primary)] px-3 py-2 text-sm font-bold text-white">Sign in</button>
+              <button type="button" onClick={() => { if (pendingPurchase) savePendingMarketplacePurchase(pendingPurchase); router.push(`/signup?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`); }} className="flex-1 rounded-xl bg-[var(--color-secondary)] px-3 py-2 text-sm font-bold text-white">Register</button>
             </div>
           </div>
         </div>

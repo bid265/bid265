@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import {
   ArrowLeft,
   CheckCircle,
@@ -18,11 +19,16 @@ import { startDailySaleCartPurchase, startListingPurchase } from "@/app/actions/
 import { formatDateOnly } from "@/lib/dateFormatting";
 import { fetchUserProfile, initiatePayment, parseName } from "@/lib/payments";
 import { useDailySaleCart } from "@/lib/marketplaceCart";
+import {
+  savePendingMarketplacePurchase,
+  takePendingMarketplacePurchase,
+} from "@/lib/marketplacePurchaseIntent";
 
 const CALLBACK_URL = process.env.NEXT_PUBLIC_PAYCHANGU_CALLBACK_URL;
 
 export default function MarketplaceItemDetails({ id, tab, onBack }) {
   const router = useRouter();
+  const { status: sessionStatus } = useSession();
   const [item, setItem] = useState(null);
   const [cart, setCart] = useDailySaleCart();
   const [loading, setLoading] = useState(true);
@@ -31,6 +37,8 @@ export default function MarketplaceItemDetails({ id, tab, onBack }) {
   const [purchasing, setPurchasing] = useState(false);
   const [cartPurchasing, setCartPurchasing] = useState(false);
   const [authPrompt, setAuthPrompt] = useState(false);
+  const [pendingPurchase, setPendingPurchase] = useState(null);
+  const resumedPurchase = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -104,45 +112,63 @@ export default function MarketplaceItemDetails({ id, tab, onBack }) {
     window.location.assign(checkout.checkoutUrl);
   };
 
-  const handlePurchase = async () => {
+  const handlePurchase = useCallback(async () => {
     if (!item) return;
     setPurchasing(true);
     setPurchaseError("");
+    const kind = tab === "daily-sales"
+      ? "DAILY_SALE"
+      : item.listingType === "LEASE" ? "PROPERTY_RENT" : "PROPERTY";
     try {
-      const kind = tab === "daily-sales"
-        ? "DAILY_SALE"
-        : item.listingType === "LEASE" ? "PROPERTY_RENT" : "PROPERTY";
       const purchase = await startListingPurchase(kind, item.id);
       if (!purchase.success) throw new Error(purchase.error);
       await startCheckout(purchase);
     } catch (purchaseFailure) {
       const message = purchaseFailure.message || "Could not start purchase.";
       if (message.includes("signed-in bidders")) {
+        setPendingPurchase({ type: "listing", listingId: Number(id), kind });
         setAuthPrompt(true);
       } else {
         setPurchaseError(message);
       }
       setPurchasing(false);
     }
-  };
+  }, [id, item, tab]);
 
-  const handleCartCheckout = async () => {
+  const handleCartCheckout = useCallback(async (listingIds = cart.map((cartItem) => cartItem.id)) => {
     setCartPurchasing(true);
     setPurchaseError("");
     try {
-      const purchase = await startDailySaleCartPurchase(cart.map((cartItem) => cartItem.id));
+      const purchase = await startDailySaleCartPurchase(listingIds);
       if (!purchase.success) throw new Error(purchase.error);
       await startCheckout(purchase);
     } catch (purchaseFailure) {
       const message = purchaseFailure.message || "Could not start checkout.";
       if (message.includes("signed-in bidders")) {
+        setPendingPurchase({ type: "cart", listingIds });
         setAuthPrompt(true);
       } else {
         setPurchaseError(message);
       }
       setCartPurchasing(false);
     }
-  };
+  }, [cart]);
+
+  useEffect(() => {
+    if (loading || sessionStatus === "loading" || resumedPurchase.current) return;
+
+    const intent = takePendingMarketplacePurchase();
+    if (!intent) return;
+    resumedPurchase.current = true;
+
+    queueMicrotask(() => {
+      if (intent.type === "listing" && intent.listingId === Number(id)) {
+        void handlePurchase();
+      } else if (intent.type === "cart") {
+        void handleCartCheckout(intent.listingIds);
+      }
+    });
+  }, [id, loading, sessionStatus, handlePurchase, handleCartCheckout]);
 
   const listingsHref = `/marketplace?tab=${tab}`;
   const attributes = item?.attributes && typeof item.attributes === "object"
@@ -314,8 +340,8 @@ export default function MarketplaceItemDetails({ id, tab, onBack }) {
             <p className="text-sm text-[var(--color-muted)]">Create a bidder account or sign in before purchasing this listing.</p>
             <div className="flex gap-3">
               <button type="button" onClick={() => setAuthPrompt(false)} className="flex-1 rounded-xl border border-[var(--color-border)] px-3 py-2 text-sm font-semibold">Cancel</button>
-              <button type="button" onClick={() => router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`)} className="flex-1 rounded-xl bg-[var(--color-primary)] px-3 py-2 text-sm font-bold text-white">Sign in</button>
-              <button type="button" onClick={() => router.push(`/signup?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`)} className="flex-1 rounded-xl bg-[var(--color-secondary)] px-3 py-2 text-sm font-bold text-white">Register</button>
+              <button type="button" onClick={() => { if (pendingPurchase) savePendingMarketplacePurchase(pendingPurchase); router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`); }} className="flex-1 rounded-xl bg-[var(--color-primary)] px-3 py-2 text-sm font-bold text-white">Sign in</button>
+              <button type="button" onClick={() => { if (pendingPurchase) savePendingMarketplacePurchase(pendingPurchase); router.push(`/signup?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`); }} className="flex-1 rounded-xl bg-[var(--color-secondary)] px-3 py-2 text-sm font-bold text-white">Register</button>
             </div>
           </div>
         </div>

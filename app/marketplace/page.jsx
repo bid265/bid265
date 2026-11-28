@@ -1,9 +1,13 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Gavel } from "lucide-react";
 import BidderMarketplace from "@/components/dashboard/BidderMarketplace";
 
 export default async function MarketplacePage({ searchParams }) {
   const params = await searchParams;
+  const category = typeof params?.category === "string" ? params.category.trim() : "";
+  if (!category) redirect("/");
+
   const tab = ["properties", "auctions"].includes(params?.tab) ? params.tab : "daily-sales";
 
   return (
@@ -20,7 +24,7 @@ export default async function MarketplacePage({ searchParams }) {
         </header>
         <BidderMarketplace
           initialTab={tab}
-          initialCategory={params?.category || ""}
+          initialCategory={category}
           initialQuery={params?.q || ""}
           showTabSwitcher={false}
         />
